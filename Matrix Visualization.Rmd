@@ -1,0 +1,44 @@
+---
+title: "Matrix Heatmap"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install Libraries
+```{r}
+install.packages("readxl")
+install.packages("ggplot2")
+install.packages("reshape2")
+install.packages("pheatmap")
+```
+
+## Load Data
+```{r}
+# Load necessary libraries
+library(readxl)
+library(ggplot2)
+library(reshape2)
+library(pheatmap)
+
+# Load the matrix from Excel
+file_path <- "output/Ruby output/similarity_checker(PRACTICAL with only AI).xlsx"
+matrix_data <- read_excel(file_path, sheet = 1) # Read the first sheet
+
+# Print the first few rows
+head(matrix_data)
+```
+## Load Data
+```{r}
+# Remove user_id column for the heatmap
+matrix_data_clean <- as.matrix(matrix_data[,-1])
+
+# Set row and column names to user_id
+rownames(matrix_data_clean) <- matrix_data$user_id
+colnames(matrix_data_clean) <- matrix_data$user_id
+
+# Plot heatmap
+pheatmap(matrix_data_clean, cluster_rows=TRUE, cluster_cols=TRUE)
+```
