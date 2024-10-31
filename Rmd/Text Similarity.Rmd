@@ -364,7 +364,7 @@ library(writexl)
 # Define the xlsx_writer function
 xlsx_writer <- function(users, similarities) {
   # Define the file path of the output
-  output_file_path <- "output"
+  output_file_path <- "output/R output"
 
   # Get current datetime as a string (format: YYYYMMDD%H%M)
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
