@@ -1,3 +1,6 @@
+// 引入 ngram_frequency.js 中的函數
+import { calculateNGramFrequency } from './ngram_frequency.js';
+
 const homeButton = document.getElementById('home-button');
 const menuButton = document.getElementById('menu-button');
 const sidebar = document.getElementById('sidebar');
@@ -69,6 +72,17 @@ function populateSidebar(data) {
 function showCluster(cluster, clusterIndex, csvData) {
     currentClusterIndex = clusterIndex; // 保存目前 Cluster 索引
     currentClusterData = { cluster, csvData }; // 保存目前 Cluster 資料
+
+    // 收集每個 document 的文字內容
+    const documents = cluster.map(id => {
+        const row = csvData.find(row => String(row.user_id).trim() === String(id).trim());
+        return row ? escapeHTML(row.final_submission) : null; // 只收集非空的內容
+    }).filter(Boolean); // 過濾掉 null 或 undefined 的值
+
+    // 計算 n-gram 頻率
+    const n = 3; // 設置 n-gram 的長度
+    const nGramDict = calculateNGramFrequency(documents, n);
+    console.log("N-Gram Frequencies:", nGramDict);
 
     content.innerHTML = `
         <section>
