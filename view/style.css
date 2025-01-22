@@ -20,22 +20,39 @@ header h1 {
     font-size: 24px;
 }
 
+.home-button {
+    cursor: pointer; /* 滑鼠移過顯示為手型 */
+    color: white;
+    text-decoration: none; /* 移除連結下劃線 */
+    font-size: 24px;
+}
+
+.home-button:hover {
+    text-decoration: underline; /* 滑鼠懸停時添加下劃線 */
+}
+
 /* Hamburger Button */
 .menu-button {
-    background: none;
+    background-color: #388E3C; /* 深綠色背景 */
     border: none;
     color: white;
     font-size: 20px;
     cursor: pointer;
     position: absolute;
     left: 10px;
+    padding: 10px; /* 增加按鈕的觸控範圍 */
+    border-radius: 5px; /* 圓角樣式 */
+}
+
+.menu-button:hover {
+    background-color: #2E7D32; /* 滑鼠懸停時更深的綠色 */
 }
 
 /* Sidebar */
 .sidebar {
-    background-color: #f4f4f4;
+    background-color: #82b985; /* 比上方綠色淡一點 */
     position: fixed;
-    top: 50px; /* Below the header */
+    top: 50px; /* 保持在標頭以下 */
     left: 0;
     width: 250px;
     height: 100%;
@@ -46,7 +63,7 @@ header h1 {
 }
 
 .sidebar.active {
-    transform: translateX(0);
+    transform: translateX(0); /* 打開狀態 */
 }
 
 .cluster-list {
@@ -57,13 +74,18 @@ header h1 {
 
 .cluster-list li {
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #4CAF50; /* 分隔線與主題顏色相似 */
 }
 
 .cluster-list li a {
     text-decoration: none;
-    color: #333;
+    color: white;
     display: block;
+    font-weight: bold; /* 加粗文字 */
+}
+
+.cluster-list li a:hover {
+    background-color: #4CAF50; /* 滑鼠懸停時更深的綠色 */
 }
 
 /* Main Content */
@@ -95,17 +117,23 @@ header h1 {
 
 /* Back Button */
 .back-button {
-    background: #ddddddac;
+    background: #dddddd9c;
     color: black;
-    border: 1px solid #dddddd;
+    border: 1px solid #dddddd80;
     padding: 10px 15px;
     cursor: pointer;
     margin-bottom: 10px;
     border-radius: 5px;
     font-size: 14px;
-    font-weight: bold;
 }
 
 .back-button:hover {
     background-color: #f0f0f06c;
+}
+
+/* Divider Line */
+hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
 }

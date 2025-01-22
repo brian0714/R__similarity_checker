@@ -33,7 +33,7 @@ calculate_cluster_stats <- function(df, clusters) {
 }
 
 # 定義函式以將集群使用統計寫入 Excel
-write_cluster_use_stats_to_excel <- function(cluster_stats, output_dir) {
+write_cluster_use_stats_to_excel <- function(cluster_stats, output_dir="output/R_output/excel_output", output_name = "cluster_use_stats_") {
   # 初始化一個空列表來存放每個 Cluster 的數據框
   excel_sheets <- list()
 
@@ -84,18 +84,19 @@ write_cluster_use_stats_to_excel <- function(cluster_stats, output_dir) {
   # 寫入 Excel
   # 取得目前日期時間作為檔名的一部分（格式：YYYYMMDD%H%M）
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
-  excel_file_path <- paste0(output_dir, "/cluster_use_stats_", datetime, ".xlsx")
+  excel_file_path <- paste0(output_dir, "/", output_name, datetime, ".xlsx")
   write_xlsx(excel_sheets, path = excel_file_path)
 }
 
 # Main script
 # Set the input file path
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 
 # Define multiple filter conditions as strings
 filter_conditions <- list(
 #   "use_ai == 0",
-  "task_type == 'PRACTICAL'"
+  paste0("task_type == '", TASK_TYPE, "'")
 )
 
 # Call the function
@@ -103,7 +104,9 @@ df <- csv_reader(file_path, filter_conditions = filter_conditions)
 
 # Load the similarity data from CSV
 # similarity_file_path <- "output/R_output/CSV_output/winnowing_similarity_similarity_checker_202411070948.csv"
-similarity_file_path <- "output/R_output/CSV_output/cosine_similarity_similarity_checker_202501222332.csv"
+# similarity_file_path <- "output/R_output/CSV_output/practical_cosine_similarity_similarity_checker_202501222332.csv"
+similarity_file_path <- "output/R_output/CSV_output/creative_cosine_similarity_similarity_checker_202501230452.csv"
+
 
 # 計算 Elbow method 並繪製最佳 k 值的圖表
 output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
@@ -118,17 +121,21 @@ output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
 clusters <- plot_dendrogram_with_cut(similarity_file_path, method = "average", k = 10, output_path = output_path)
 cat("Clusters:")
 print(clusters)
-json_file_path <- write_list_to_json(clusters)
-replace_ids_with_submissions(json_file_path, file_path)
+
+# 將 cluster 寫入 JSON
+output_name <- paste0(TASK_TYPE, "_clusters_")
+json_file_path <- write_list_to_json(clusters, output_name=output_name)
+output_name <- paste0(TASK_TYPE, "_text_clusters_")
+# replace_ids_with_submissions(json_file_path, file_path, output_name=output_name)
 
 # 執行函式
-# cluster_stats <- calculate_cluster_stats(df, clusters)
+cluster_stats <- calculate_cluster_stats(df, clusters)
 # 檢視 cluster_stats 結果
 # cat(strrep("=", 50), "\nCluster stats output:\n")
 # print(cluster_stats)
 
 # 將 cluster_stats 寫入 Excel
-output_dir <- "output/R_output/excel_output"
-# write_cluster_use_stats_to_excel(cluster_stats, output_dir)
+output_name <- paste0(TASK_TYPE, "_cluster_use_stats_")
+write_cluster_use_stats_to_excel(cluster_stats, output_name=output_name)
 # cat("Cluster use stats written to", output_dir, "\n")
 

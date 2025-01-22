@@ -3,9 +3,10 @@ library(jsonlite)
 # Function to write a list to a JSON file
 write_list_to_json <- function(data_list,
                             output_dir="output/R_output/json_output",
-                            pretty = TRUE) {
+                            pretty = TRUE,
+                            output_name = "clusters_") {
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
-  json_file_path <- paste0(output_dir, "/clusters_", datetime, ".json")
+  json_file_path <- paste0(output_dir, "/", output_name, datetime, ".json")
   # Write the list to a JSON file
   write_json(data_list, json_file_path, pretty = pretty)
   # Print confirmation message
@@ -15,7 +16,7 @@ write_list_to_json <- function(data_list,
 }
 
 # Function to load JSON and CSV, and replace IDs with final_submission
-replace_ids_with_submissions <- function(json_path, csv_path, output_dir="output/R_output/json_output") {
+replace_ids_with_submissions <- function(json_path, csv_path, output_dir="output/R_output/json_output", output_name="text_clusters_") {
   # Step 1: Load the JSON
   clusters <- fromJSON(json_path)
 #   cat("Loaded JSON structure:\n")
@@ -41,7 +42,7 @@ replace_ids_with_submissions <- function(json_path, csv_path, output_dir="output
 
   # Step 4: Save the modified JSON
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
-  json_file_path <- paste0(output_dir, "/text_clusters_", datetime, ".json")
+  json_file_path <- paste0(output_dir, "/", output_name, datetime, ".json")
   write_json(clusters_replaced, json_file_path, pretty = TRUE)
   cat("Replaced JSON written to:", json_file_path, "\n")
 }

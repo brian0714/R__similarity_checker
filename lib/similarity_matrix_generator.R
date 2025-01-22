@@ -108,7 +108,7 @@ file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
 # Define multiple filter conditions as strings
 filter_conditions <- list(
   # "use_ai == 1",
-  "task_type == 'PRACTICAL'"
+  "task_type == 'PRACTICAL'" # "PRACTICAL" or "CREATIVE"
 )
 # filter_conditions <- list()
 

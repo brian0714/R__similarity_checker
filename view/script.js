@@ -1,12 +1,16 @@
+const homeButton = document.getElementById('home-button');
 const menuButton = document.getElementById('menu-button');
 const sidebar = document.getElementById('sidebar');
 const clusterList = document.getElementById('cluster-list');
 const content = document.getElementById('content');
-const jsonPath = "clusters_202501230100.json";
+const jsonPath = "data/json/CREATIVE_clusters_202501230455.json";
 const csvPath = "../data/text_data/extracted_behavior_pattern_data.csv";
 
 let currentClusterIndex = null; // 保存目前的 Cluster 索引
 let currentClusterData = null; // 保存目前的 Cluster 資料
+
+// 為標題按鈕添加點擊事件，回到首頁
+homeButton.addEventListener('click', showHome);
 
 // Toggle Sidebar
 menuButton.addEventListener('click', () => {
@@ -78,7 +82,6 @@ function showCluster(cluster, clusterIndex, csvData) {
                 }).join('')}
             </div>
             <hr>
-            <br>
             <button class="back-button" onclick="showHome()">Back to Home</button>
         </section>
     `;
@@ -101,7 +104,6 @@ function showDocument(doc, id) {
             <hr>
             <p>${doc}</p>
             <hr>
-            <br>
             <button class="back-button" onclick="showCluster(currentClusterData.cluster, currentClusterIndex, currentClusterData.csvData)">Back to Cluster</button>
         </section>
     `;
