@@ -137,3 +137,12 @@ hr {
     border-top: 1px solid #ddd;
     margin: 20px 0;
 }
+
+/* 高亮的樣式 */
+.highlight {
+    background-color: #ffeb3b; /* 使用黃色背景 */
+    font-weight: bold;
+    color: #000; /* 黑色文字 */
+    padding: 2px 4px;
+    border-radius: 3px;
+}

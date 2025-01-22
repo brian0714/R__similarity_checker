@@ -9,8 +9,11 @@ const content = document.getElementById('content');
 const jsonPath = "data/json/CREATIVE_clusters_202501230455.json";
 const csvPath = "../data/text_data/extracted_behavior_pattern_data.csv";
 
-let currentClusterIndex = null; // 保存目前的 Cluster 索引
-let currentClusterData = null; // 保存目前的 Cluster 資料
+// 全局變量
+window.currentClusterIndex = null; // 保存目前的 Cluster 索引
+window.currentClusterData = null; // 保存目前的 Cluster 資料
+window.lastNGramValue = null; // 保存上一次選擇的 n-gram 值
+window.lastNGramDict = {}; // 保存上一次的 n-gram 結果
 
 // 為標題按鈕添加點擊事件，回到首頁
 homeButton.addEventListener('click', showHome);
@@ -29,7 +32,7 @@ Promise.all([fetch(jsonPath), fetch(csvPath)])
         const jsonData = await jsonResponse.json();
         const csvText = await csvResponse.text();
 
-        // Use PapaParse to parse CSV data
+        // 使用 PapaParse 解析 CSV 數據
         const csvData = Papa.parse(csvText, {
             header: true,
             skipEmptyLines: true,
@@ -70,25 +73,34 @@ function populateSidebar(data) {
 
 // Show Cluster Content
 function showCluster(cluster, clusterIndex, csvData) {
-    currentClusterIndex = clusterIndex; // 保存目前 Cluster 索引
-    currentClusterData = { cluster, csvData }; // 保存目前 Cluster 資料
+    currentClusterIndex = clusterIndex;
+    currentClusterData = { cluster, csvData };
+    window.currentClusterIndex = currentClusterIndex;
+    window.currentClusterData = currentClusterData;
 
-    // 收集每個 document 的文字內容
+    // 重置 n-gram 狀態
+    window.lastNGramValue = null;
+    window.lastNGramDict = {};
+
     const documents = cluster.map(id => {
         const row = csvData.find(row => String(row.user_id).trim() === String(id).trim());
-        return row ? escapeHTML(row.final_submission) : null; // 只收集非空的內容
-    }).filter(Boolean); // 過濾掉 null 或 undefined 的值
-
-    // 計算 n-gram 頻率
-    const n = 3; // 設置 n-gram 的長度
-    const nGramDict = calculateNGramFrequency(documents, n);
-    console.log("N-Gram Frequencies:", nGramDict);
+        return row ? escapeHTML(row.final_submission) : null;
+    }).filter(Boolean);
 
     content.innerHTML = `
         <section>
             <h2>Cluster ${clusterIndex}</h2>
             <hr>
             <div>
+                <label for="ngram-select">Select Gram:</label>
+                <select id="ngram-select">
+                    <option value="" selected disabled>Select n-gram</option>
+                    <option value="2">Gram = 2</option>
+                    <option value="3">Gram = 3</option>
+                </select>
+            </div>
+            <hr>
+            <div id="documents-container">
                 ${cluster.map((id) => {
                     const row = csvData.find(row => String(row.user_id).trim() === String(id).trim());
                     const doc = row ? row.final_submission : `Document for ID: ${id} (No match!)`;
@@ -100,7 +112,23 @@ function showCluster(cluster, clusterIndex, csvData) {
         </section>
     `;
 
-    // Attach event listeners to buttons
+    // Attach event listener for select dropdown
+    const nGramSelect = document.getElementById('ngram-select');
+    nGramSelect.addEventListener('change', () => {
+        const selectedValue = nGramSelect.value;
+
+        if (!selectedValue) {
+            alert("Please select a gram value.");
+            return;
+        }
+
+        const n = parseInt(selectedValue, 10);
+        window.lastNGramValue = n; // 保存 n 的值
+        window.lastNGramDict = calculateNGramFrequency(documents, n); // 保存 n-gram 結果
+        console.log(`N-Gram Frequencies for Gram = ${n}:`, window.lastNGramDict);
+    });
+
+    // Attach event listeners to document buttons
     document.querySelectorAll('.doc-button').forEach(button => {
         button.addEventListener('click', () => {
             const doc = button.getAttribute('data-doc');
@@ -110,22 +138,54 @@ function showCluster(cluster, clusterIndex, csvData) {
     });
 }
 
-// Show Document Content
+// Highlight text in document
+function highlightText(text, nGramDict, threshold) {
+    const words = text.split(" ");
+    const n = Math.max(...Object.keys(nGramDict).map(gram => gram.split(" ").length));
+    const highlightedText = [];
+
+    for (let i = 0; i < words.length; i++) {
+        let matchFound = false;
+
+        for (let j = n; j > 0; j--) {
+            if (i + j <= words.length) {
+                const nGram = words.slice(i, i + j).join(" ");
+                if (nGramDict[nGram] >= threshold) {
+                    highlightedText.push(`<span class="highlight">${nGram}</span>`);
+                    i += j - 1;
+                    matchFound = true;
+                    break;
+                }
+            }
+        }
+
+        if (!matchFound) {
+            highlightedText.push(words[i]);
+        }
+    }
+
+    return highlightedText.join(" ");
+}
+
+// Show Document Content with highlighting
 function showDocument(doc, id) {
+    const threshold = 2;
+    const highlightedContent = highlightText(doc, window.lastNGramDict, threshold);
+
     content.innerHTML = `
         <section>
             <h2>Document ${id}</h2>
             <hr>
-            <p>${doc}</p>
+            <p>${highlightedContent}</p>
             <hr>
-            <button class="back-button" onclick="showCluster(currentClusterData.cluster, currentClusterIndex, currentClusterData.csvData)">Back to Cluster</button>
+            <button class="back-button" onclick="showCluster(window.currentClusterData.cluster, window.currentClusterIndex, window.currentClusterData.csvData)">Back to Cluster ${window.currentClusterIndex}</button>
         </section>
     `;
 }
 
 // Show Home Page
 function showHome() {
-    currentClusterIndex = null; // 清空目前 Cluster 狀態
+    currentClusterIndex = null;
     currentClusterData = null;
 
     content.innerHTML = `
@@ -147,3 +207,7 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;')
         .replace(/\n/g, '<br>');
 }
+
+// 暴露全局函數
+window.showHome = showHome;
+window.showCluster = showCluster;
