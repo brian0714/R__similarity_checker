@@ -12,7 +12,11 @@ header {
     display: flex;
     align-items: center;
     padding: 10px 15px;
-    position: relative;
+    position: fixed; /* 固定在頂部 */
+    top: 0;
+    left: 0;
+    width: 100%; /* 佔滿整個寬度 */
+    z-index: 1000; /* 確保在其他內容之上 */
 }
 
 header h1 {
@@ -38,7 +42,7 @@ header h1 {
     color: white;
     font-size: 20px;
     cursor: pointer;
-    position: absolute;
+    position: relative;
     left: 10px;
     padding: 10px; /* 增加按鈕的觸控範圍 */
     border-radius: 5px; /* 圓角樣式 */
@@ -51,30 +55,64 @@ header h1 {
 /* Sidebar */
 .sidebar {
     background-color: #82b985; /* 比上方綠色淡一點 */
-    position: fixed;
+    position: fixed; /* 固定在左側 */
     top: 50px; /* 保持在標頭以下 */
     left: 0;
     width: 250px;
-    height: 100%;
+    height: calc(100% - 50px); /* 減去標頭高度，佔滿剩餘視窗高度 */
     overflow-y: auto;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 100; /* 確保在內容之上 */
 }
 
 .sidebar.active {
     transform: translateX(0); /* 打開狀態 */
 }
 
-.cluster-list {
-    list-style: none;
+/* Data Buttons (Creative Data & Practical Data) */
+.data-button {
+    background-color: #2E7D32; /* 深綠色背景 */
+    color: white;
+    border: none;
+    padding: 12px 15px; /* 調整內距 */
+    width: 100%; /* 寬度佔滿側邊欄 */
+    cursor: pointer;
+    text-align: left;
+    font-size: 18px; /* 更大字體來區分 */
+    font-weight: bold;
+    border-bottom: 1px solid #388E3C;
+    margin-bottom: 10px; /* 增加 Data Buttons 間的空間 */
+}
+
+.data-button:hover {
+    background-color: #1B5E20; /* 滑鼠懸停時更深綠色 */
+}
+
+/* Cluster Lists */
+.data-list {
+    list-style: none; /* 移除 Bullet Point */
     padding: 0;
     margin: 0;
 }
 
+.cluster-list {
+    list-style: none; /* 移除 Bullet Point */
+    padding: 0;
+    margin: 0;
+    margin-left: 10px; /* 稍微縮進 */
+    border-left: 2px solid #4CAF50; /* 左側邊框區分 */
+}
+
+.cluster-list.hidden {
+    display: none; /* 默認隱藏 */
+}
+
 .cluster-list li {
-    padding: 10px;
-    border-bottom: 1px solid #4CAF50; /* 分隔線與主題顏色相似 */
+    padding: 8px 5px; /* 調整內距增加可點擊區域 */
+    border-bottom: 1px solid #4CAF50; /* 與 Dataset 分隔線一致 */
+    margin-bottom: 5px; /* 增加每個 Cluster Link 間距 */
 }
 
 .cluster-list li a {
@@ -85,7 +123,7 @@ header h1 {
 }
 
 .cluster-list li a:hover {
-    background-color: #4CAF50; /* 滑鼠懸停時更深的綠色 */
+    background-color: #388E3C; /* 滑鼠懸停時深綠色背景 */
 }
 
 /* Main Content */
@@ -93,6 +131,7 @@ header h1 {
     margin-left: 0;
     padding: 20px;
     transition: margin-left 0.3s ease;
+    margin-top: 60px; /* 防止內容被標頭覆蓋 */
 }
 
 .sidebar.active ~ #content {

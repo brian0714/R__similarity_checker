@@ -10,17 +10,25 @@
     <div id="app">
         <header>
             <button id="menu-button" class="menu-button">☰</button>
-            <!-- 添加 id="home-button" 並設置點擊事件 -->
             <h1 id="home-button" class="home-button">Clustered Documents</h1>
         </header>
         <div id="container">
             <aside id="sidebar" class="sidebar">
-                <ul id="cluster-list" class="cluster-list"></ul>
+                <br>
+                <br>
+                <ul id="data-list" class="data-list">
+                    <li><button id="creative-data-button" class="data-button">Creative Data</button>
+                        <ul id="creative-cluster-list" class="cluster-list hidden"></ul>
+                    </li>
+                    <li><button id="practical-data-button" class="data-button">Practical Data</button>
+                        <ul id="practical-cluster-list" class="cluster-list hidden"></ul>
+                    </li>
+                </ul>
             </aside>
             <main id="content" class="content">
                 <section>
                     <h2>Welcome</h2>
-                    <p>This website displays clustered documents based on NLP analysis. Select a cluster from the sidebar to view its documents.</p>
+                    <p>This website displays clustered documents based on NLP analysis. Select a dataset from the sidebar to explore its clusters and documents.</p>
                 </section>
             </main>
         </div>
