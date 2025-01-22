@@ -1,0 +1,111 @@
+/* General Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Header */
+header {
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    position: relative;
+}
+
+header h1 {
+    margin: 0 auto;
+    font-size: 24px;
+}
+
+/* Hamburger Button */
+.menu-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    position: absolute;
+    left: 10px;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: #f4f4f4;
+    position: fixed;
+    top: 50px; /* Below the header */
+    left: 0;
+    width: 250px;
+    height: 100%;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar.active {
+    transform: translateX(0);
+}
+
+.cluster-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cluster-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.cluster-list li a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+}
+
+/* Main Content */
+#content {
+    margin-left: 0;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.active ~ #content {
+    margin-left: 250px;
+}
+
+/* Document Button */
+.doc-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    margin: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.doc-button:hover {
+    background-color: #45a049;
+}
+
+/* Back Button */
+.back-button {
+    background: #ddddddac;
+    color: black;
+    border: 1px solid #dddddd;
+    padding: 10px 15px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background-color: #f0f0f06c;
+}
