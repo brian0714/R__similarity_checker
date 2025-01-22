@@ -150,6 +150,20 @@ plot_dendrogram_with_cut <- function(file_path, method = "average", k = 4, outpu
   # 將聚類結果轉換為樹狀圖物件
   dend <- as.dendrogram(hc)
 
+  # 使用 cutree 將樹狀圖切割成 k 個群組
+  clusters <- cutree(hc, k = k)
+
+  # 將每個群集的成員存儲在列表中
+  output_clusters <- lapply(1:k, function(i) {
+    names(clusters[clusters == i])
+  })
+
+  # 顯示每個群集的成員
+  cat("Cluster members:\n")
+  for (i in 1:k) {
+    cat("Cluster", i, ":", names(clusters[clusters == i]), "\n")
+  }
+
   # 繪製樹狀圖並標示分群結果
   png(output_path, width = 800, height = 600)
   plot(dend, main = paste("Dendrogram using", method, "linkage with", k, "clusters"))
@@ -158,11 +172,16 @@ plot_dendrogram_with_cut <- function(file_path, method = "average", k = 4, outpu
   rect.hclust(hc, k = k, border = "red")
 
   dev.off()
+
+  # 回傳集群列表
+  return(output_clusters)
 }
 
 # Example usage
 # Case 1: Using file_path
 file_path <- "output/R_output/CSV_output/winnowing_similarity_similarity_checker_202410311316.csv"
+# Matrix with all data
+file_path <- "output/R_output/CSV_output/winnowing_similarity_similarity_checker_202411070948.csv"
 
 # 範例使用，繪製相似度熱度圖
 output_path <- "output/viz/heatmap/winnowing_similarity_heatmap.png"
@@ -179,18 +198,18 @@ output_path_complete <- "output/viz/dendrogram/winnowing_dendrogram_complete.png
 # plot_dendrogram(file_path, method = "complete", output_path = output_path_complete)
 
 # 範例使用，計算 Silhouette scores 並繪製最佳 k 值的圖表
-output_path <- "output/viz/silhouette_scores/winnowing_silhouette_scores_plot.png"
-optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 10)
-cat("Optimal k (Silhouette scores):", optimal_k, "\n")
+# output_path <- "output/viz/silhouette_scores/winnowing_silhouette_scores_plot.png"
+# optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 10)
+# cat("Optimal k (Silhouette scores):", optimal_k, "\n")
 
 # 範例使用，計算 Elbow method 並繪製最佳 k 值的圖表
-output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-optimal_k <- elbow_method(file_path, output_path, max_k = 10)
-cat("Optimal k (elbow point):", optimal_k, "\n")
+# output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
+# optimal_k <- elbow_method(file_path, output_path, max_k = 10)
+# cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 範例使用，繪製帶有切割結果的樹狀圖
-output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
-plot_dendrogram_with_cut(file_path, method = "average", k = optimal_k, output_path = output_path)
+# output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
+# plot_dendrogram_with_cut(file_path, method = "average", k = optimal_k, output_path = output_path)
 
 # Case 2: Using df directly
 # Assuming df is a pre-loaded data frame with similar structure
