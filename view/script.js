@@ -25,8 +25,8 @@ window.csvData = []; // 保存解析後的 CSV 數據
 // 初始化
 homeButton.addEventListener('click', showHome);
 menuButton.addEventListener('click', () => sidebar.classList.toggle('active'));
-creativeDataButton.addEventListener('click', () => toggleClusterList('creative'));
-practicalDataButton.addEventListener('click', () => toggleClusterList('practical'));
+creativeDataButton.addEventListener('click', () => toggleDatasetView('creative'));
+practicalDataButton.addEventListener('click', () => toggleDatasetView('practical'));
 
 // Fetch CSV Data
 fetch(csvPath)
@@ -43,17 +43,19 @@ fetch(csvPath)
     })
     .catch(error => console.error("Error loading CSV data:", error));
 
-// 展開/收起 Cluster List
-function toggleClusterList(dataset) {
+// 切換數據集視圖
+function toggleDatasetView(dataset) {
     const list = dataset === 'creative' ? creativeClusterList : practicalClusterList;
     const jsonPath = dataset === 'creative' ? creativeJsonPath : practicalJsonPath;
 
+    window.currentDataset = dataset;
+
     if (list.classList.contains('hidden')) {
+        // 展開列表並顯示描述
         fetchClusterData(jsonPath, list, dataset);
         list.classList.remove('hidden');
-    } else {
-        list.classList.add('hidden');
     }
+    showDatasetDescription(dataset);
 }
 
 // Fetch Cluster Data
@@ -131,11 +133,10 @@ function showCluster(cluster, clusterIndex, dataset) {
                 }).join('')}
             </div>
             <hr>
-            <button class="back-button" onclick="showHome()">Back to Home</button>
+            <button class="back-button" onclick="showDatasetDescription('${dataset}')">Back to Dataset</button>
         </section>
     `;
 
-    // Attach event listener for n-gram dropdown
     const nGramSelect = document.getElementById('ngram-select');
     nGramSelect.addEventListener('change', () => {
         const selectedValue = nGramSelect.value;
@@ -151,7 +152,6 @@ function showCluster(cluster, clusterIndex, dataset) {
         console.log(`N-Gram Frequencies for Gram = ${n}:`, clusterState.nGramDict);
     });
 
-    // Attach event listeners to document buttons
     document.querySelectorAll('.doc-button').forEach(button => {
         button.addEventListener('click', () => {
             const id = button.getAttribute('data-id');
@@ -159,6 +159,53 @@ function showCluster(cluster, clusterIndex, dataset) {
             showDocument(doc, id, clusterKey);
         });
     });
+}
+
+// Show Dataset Description
+function showDatasetDescription(dataset) {
+    const description = dataset === 'creative' ? `
+        <tr>
+            <th>Creative Task Description</th>
+            <td>You are now collaborating with a world-renowned design team. The team's goal is to design the experience for travelers, for a futuristic, innovative, high-tech airport in Tokyo due to be built in the year 2050. The team decided to draw upon your extensive travel experience and inclination for cutting-edge technology. They seek your help; their team propose an interesting experience for travelers using this airport. Your task is divided into two parts.<br><br>
+            <strong>Part 1:</strong> Please write a story of an ideal experience a traveler might have in using this futuristic airport. The story should focus on what a traveler might see and experience in the airport, and how it will make them feel. This futuristic experience can be creative and does not need to be limited to today’s technologies; instead, focus on achieving your ideal experience. The story should be 100–200 words.<br><br>
+            <strong>Part 2:</strong> Create three catchy marketing slogans that encapsulate the unique futuristic experiences mentioned in your story. Each of the three slogans should be within 2–10 words.
+            </td>
+        </tr>
+    ` : `
+        <tr>
+            <th>Practical Task Description</th>
+            <td>You are preparing a post for your Facebook fan page that will guide firsttime travelers successfully through the complicated process at a major airport in Japan to travel. The Facebook post will be divided into two parts.<br><br>
+            <strong>Part 1:</strong> Create a concise, step-by-step guide that a traveler needs to follow from the moment they arrive at the airport until they board their plane. A traveler should be able to navigate the airport experience following only your guide. The guide should be 100–200 words.<br><br>
+            <strong>Part 2:</strong> Highlight the top three bits of advice you would give travelers to prevent the most common mistakes they might make. Each of the three bits of advice should be no more than 1 sentence (three sentences total).
+            </td>
+        </tr>
+    `;
+
+    window.location.hash = `${dataset}_data`;
+
+    if (dataset === 'creative') {
+        creativeClusterList.classList.remove('hidden');
+        practicalClusterList.classList.add('hidden');
+    } else {
+        practicalClusterList.classList.remove('hidden');
+        creativeClusterList.classList.add('hidden');
+    }
+
+    content.innerHTML = `
+        <section>
+            <h2>${dataset === 'creative' ? 'Creative Data' : 'Practical Data'}</h2>
+            <hr>
+            <table class="description-table">
+            <tr>
+                <th>Common Background Scenario</th>
+                <td>You are a prominent online influencer specializing in remote work and travel. You like to work remotely in different countries and experience different cultures. In addition, you also enjoy the innovative experience that cutting-edge technology brings you in your travels.</td>
+            </tr>
+            ${description}
+            </table>
+            <hr>
+            <p> ⬅️ Select a cluster from the sidebar to view its documents.</p>
+        </section>
+    `;
 }
 
 // Highlight text in document
@@ -216,6 +263,7 @@ function showDocument(doc, id, clusterKey) {
 function showHome() {
     currentClusterIndex = null;
     currentClusterData = null;
+    window.currentDataset = null;
 
     content.innerHTML = `
         <section>
@@ -240,3 +288,4 @@ function escapeHTML(str) {
 // 暴露全局函數
 window.showHome = showHome;
 window.showCluster = showCluster;
+window.showDatasetDescription = showDatasetDescription;

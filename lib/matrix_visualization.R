@@ -1,6 +1,7 @@
 # install.packages("dendextend")
 # install.packages("cluster")
 
+source("lib/csv_reader.R")
 # Load necessary libraries
 library(pheatmap)
 library(dendextend)
@@ -132,7 +133,7 @@ elbow_method <- function(file_path, output_path, max_k = 10) {
 }
 
 # Dendrogram plot function with cutree visualization
-plot_dendrogram_with_cut <- function(file_path, method = "average", k = 4, output_path) {
+plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k = 4, output_path) {
   # Load the matrix from CSV if file_path is provided
   matrix_data <- read.csv(file_path)
 
@@ -160,8 +161,34 @@ plot_dendrogram_with_cut <- function(file_path, method = "average", k = 4, outpu
 
   # 顯示每個群集的成員
   cat("Cluster members:\n")
+  cat("Cluster members:\n")
   for (i in 1:k) {
-    cat("Cluster", i, ":", names(clusters[clusters == i]), "\n")
+    # 列出每個群組的成員
+    cat("Cluster", i, "( size =", length(names(clusters[clusters == i])), "):", names(clusters[clusters == i]), "\n")
+
+    # 初始化一個向量來儲存文件的字數
+    document_length_list <- numeric(0)
+
+    # 遍歷該群組內的所有成員
+    for (j in names(clusters[clusters == i])) {
+      # 定義過濾條件
+      filter_conditions <- list(
+        paste0("use_ai == ", j),
+        paste0("task_type == '", task_type, "'")
+      )
+
+      # 根據過濾條件篩選文件
+      row <- csv_reader(filter_conditions = filter_conditions)
+      submission <- as.character(row$final_submission)
+
+      # 計算文件的字數並添加到 document_length_list
+      document_length_list <- c(document_length_list, length(unlist(strsplit(submission, " "))))
+    }
+
+    # 計算該群組的平均字數
+    average_word_size <- mean(document_length_list)
+    cat("Cluster", i, "average word size:", average_word_size, "\n")
+
   }
 
   # 繪製樹狀圖並標示分群結果

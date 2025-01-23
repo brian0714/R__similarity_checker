@@ -4,7 +4,9 @@ library(rlang)
 library(readr)
 
 # Read GenAI CSV data and apply filters
-csv_reader <- function(csv_file_path, filter_conditions = list(), num_rows = NULL) {
+csv_reader <- function(csv_file_path = 'data/text_data/extracted_behavior_pattern_data.csv',
+                      filter_conditions = list(),
+                      num_rows = NULL) {
 
   # Read CSV data
   data <- read_csv(csv_file_path)

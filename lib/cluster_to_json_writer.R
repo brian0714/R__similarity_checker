@@ -16,7 +16,7 @@ write_list_to_json <- function(data_list,
 }
 
 # Function to load JSON and CSV, and replace IDs with final_submission
-replace_ids_with_submissions <- function(json_path, csv_path, output_dir="output/R_output/json_output", output_name="text_clusters_") {
+replace_ids_with_submissions <- function(json_path, csv_path, task_type, output_dir="output/R_output/json_output", output_name="text_clusters_") {
   # Step 1: Load the JSON
   clusters <- fromJSON(json_path)
 #   cat("Loaded JSON structure:\n")
@@ -31,7 +31,7 @@ replace_ids_with_submissions <- function(json_path, csv_path, output_dir="output
   clusters_replaced <- lapply(clusters, function(cluster) {
     sapply(cluster, function(user_id) {
       # Find the corresponding row in CSV
-      submission <- csv_data$final_submission[csv_data$user_id == user_id & csv_data$task_type == "PRACTICAL"]
+      submission <- csv_data$final_submission[csv_data$user_id == user_id & csv_data$task_type == task_type]
       if (length(submission) > 0) {
         return(submission) # Replace with final_submission
       } else {

@@ -118,7 +118,7 @@ output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
 # Use optimal_k from elbow method
 # clusters <- plot_dendrogram_with_cut(file_path, method = "average", k = optimal_k, output_path = output_path)
 # Use fixed k value (e.g. 10)
-clusters <- plot_dendrogram_with_cut(similarity_file_path, method = "average", k = 10, output_path = output_path)
+clusters <- plot_dendrogram_with_cut(similarity_file_path, task_type = TASK_TYPE, method = "average", k = 10, output_path = output_path)
 cat("Clusters:")
 print(clusters)
 
@@ -126,16 +126,16 @@ print(clusters)
 output_name <- paste0(TASK_TYPE, "_clusters_")
 json_file_path <- write_list_to_json(clusters, output_name=output_name)
 output_name <- paste0(TASK_TYPE, "_text_clusters_")
-# replace_ids_with_submissions(json_file_path, file_path, output_name=output_name)
+# replace_ids_with_submissions(json_file_path, file_path, task_type=TASK_TYPE, output_name=output_name)
 
 # 執行函式
-cluster_stats <- calculate_cluster_stats(df, clusters)
+# cluster_stats <- calculate_cluster_stats(df, clusters)
 # 檢視 cluster_stats 結果
 # cat(strrep("=", 50), "\nCluster stats output:\n")
 # print(cluster_stats)
 
 # 將 cluster_stats 寫入 Excel
-output_name <- paste0(TASK_TYPE, "_cluster_use_stats_")
-write_cluster_use_stats_to_excel(cluster_stats, output_name=output_name)
+# output_name <- paste0(TASK_TYPE, "_cluster_use_stats_")
+# write_cluster_use_stats_to_excel(cluster_stats, output_name=output_name)
 # cat("Cluster use stats written to", output_dir, "\n")
 

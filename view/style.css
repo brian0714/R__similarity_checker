@@ -12,11 +12,11 @@ header {
     display: flex;
     align-items: center;
     padding: 10px 15px;
-    position: fixed; /* 固定在頂部 */
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%; /* 佔滿整個寬度 */
-    z-index: 1000; /* 確保在其他內容之上 */
+    width: 100%;
+    z-index: 1000;
 }
 
 header h1 {
@@ -25,105 +25,105 @@ header h1 {
 }
 
 .home-button {
-    cursor: pointer; /* 滑鼠移過顯示為手型 */
+    cursor: pointer;
     color: white;
-    text-decoration: none; /* 移除連結下劃線 */
+    text-decoration: none;
     font-size: 24px;
 }
 
 .home-button:hover {
-    text-decoration: underline; /* 滑鼠懸停時添加下劃線 */
+    text-decoration: underline;
 }
 
 /* Hamburger Button */
 .menu-button {
-    background-color: #388E3C; /* 深綠色背景 */
+    background-color: #388E3C;
     border: none;
     color: white;
     font-size: 20px;
     cursor: pointer;
     position: relative;
     left: 10px;
-    padding: 10px; /* 增加按鈕的觸控範圍 */
-    border-radius: 5px; /* 圓角樣式 */
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .menu-button:hover {
-    background-color: #2E7D32; /* 滑鼠懸停時更深的綠色 */
+    background-color: #2E7D32;
 }
 
 /* Sidebar */
 .sidebar {
-    background-color: #82b985; /* 比上方綠色淡一點 */
-    position: fixed; /* 固定在左側 */
-    top: 50px; /* 保持在標頭以下 */
+    background-color: #82b985;
+    position: fixed;
+    top: 50px;
     left: 0;
     width: 250px;
-    height: calc(100% - 50px); /* 減去標頭高度，佔滿剩餘視窗高度 */
+    height: calc(100% - 50px);
     overflow-y: auto;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-    z-index: 100; /* 確保在內容之上 */
+    z-index: 100;
 }
 
 .sidebar.active {
-    transform: translateX(0); /* 打開狀態 */
+    transform: translateX(0);
 }
 
 /* Data Buttons (Creative Data & Practical Data) */
 .data-button {
-    background-color: #2E7D32; /* 深綠色背景 */
+    background-color: #2E7D32;
     color: white;
     border: none;
-    padding: 12px 15px; /* 調整內距 */
-    width: 100%; /* 寬度佔滿側邊欄 */
+    padding: 12px 15px;
+    width: 100%;
     cursor: pointer;
     text-align: left;
-    font-size: 18px; /* 更大字體來區分 */
+    font-size: 18px;
     font-weight: bold;
     border-bottom: 1px solid #388E3C;
-    margin-bottom: 10px; /* 增加 Data Buttons 間的空間 */
+    margin-bottom: 10px;
 }
 
 .data-button:hover {
-    background-color: #1B5E20; /* 滑鼠懸停時更深綠色 */
+    background-color: #1B5E20;
 }
 
 /* Cluster Lists */
 .data-list {
-    list-style: none; /* 移除 Bullet Point */
+    list-style: none;
     padding: 0;
     margin: 0;
 }
 
 .cluster-list {
-    list-style: none; /* 移除 Bullet Point */
+    list-style: none;
     padding: 0;
     margin: 0;
-    margin-left: 10px; /* 稍微縮進 */
-    border-left: 2px solid #4CAF50; /* 左側邊框區分 */
+    margin-left: 10px;
+    border-left: 2px solid #4CAF50;
 }
 
 .cluster-list.hidden {
-    display: none; /* 默認隱藏 */
+    display: none;
 }
 
 .cluster-list li {
-    padding: 8px 5px; /* 調整內距增加可點擊區域 */
-    border-bottom: 1px solid #4CAF50; /* 與 Dataset 分隔線一致 */
-    margin-bottom: 5px; /* 增加每個 Cluster Link 間距 */
+    padding: 8px 5px;
+    border-bottom: 1px solid #4CAF50;
+    margin-bottom: 5px;
 }
 
 .cluster-list li a {
     text-decoration: none;
     color: white;
     display: block;
-    font-weight: bold; /* 加粗文字 */
+    font-weight: bold;
 }
 
 .cluster-list li a:hover {
-    background-color: #388E3C; /* 滑鼠懸停時深綠色背景 */
+    background-color: #388E3C;
 }
 
 /* Main Content */
@@ -131,7 +131,7 @@ header h1 {
     margin-left: 0;
     padding: 20px;
     transition: margin-left 0.3s ease;
-    margin-top: 60px; /* 防止內容被標頭覆蓋 */
+    margin-top: 60px;
 }
 
 .sidebar.active ~ #content {
@@ -179,9 +179,36 @@ hr {
 
 /* 高亮的樣式 */
 .highlight {
-    background-color: #ffeb3b; /* 使用黃色背景 */
+    background-color: #ffeb3b;
     font-weight: bold;
-    color: #000; /* 黑色文字 */
+    color: #000;
     padding: 2px 4px;
     border-radius: 3px;
+}
+
+/* Description Table */
+.description-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: left;
+}
+
+.description-table th,
+.description-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+}
+
+.description-table th {
+    background-color: #909090;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    width: 20%;
+}
+
+.description-table td {
+    background-color: #f9f9f9;
 }
