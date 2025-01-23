@@ -112,18 +112,23 @@ function showCluster(cluster, clusterIndex, dataset) {
         return row ? escapeHTML(row.final_submission) : null;
     }).filter(Boolean);
 
+    // 如果只有一份文件，禁用 n-gram 選擇功能
+    const nGramSection = documents.length > 1 ? `
+        <div>
+            <label for="ngram-select">Select Gram:</label>
+            <select id="ngram-select">
+                <option value="" selected disabled>Select n-gram</option>
+                <option value="2" ${clusterState.nGramValue === 2 ? "selected" : ""}>Gram = 2</option>
+                <option value="3" ${clusterState.nGramValue === 3 ? "selected" : ""}>Gram = 3</option>
+            </select>
+        </div>` : `
+        <p class="ngram-disabled">N-gram analysis is unavailable as this cluster contains only one document.</p>`;
+
     content.innerHTML = `
         <section>
             <h2>${dataset === 'creative' ? 'Creative Data' : 'Practical Data'} - Cluster ${clusterIndex}</h2>
             <hr>
-            <div>
-                <label for="ngram-select">Select Gram:</label>
-                <select id="ngram-select">
-                    <option value="" selected disabled>Select n-gram</option>
-                    <option value="2" ${clusterState.nGramValue === 2 ? "selected" : ""}>Gram = 2</option>
-                    <option value="3" ${clusterState.nGramValue === 3 ? "selected" : ""}>Gram = 3</option>
-                </select>
-            </div>
+            ${nGramSection}
             <hr>
             <div id="documents-container">
                 ${cluster.map((id) => {
@@ -137,20 +142,22 @@ function showCluster(cluster, clusterIndex, dataset) {
         </section>
     `;
 
-    const nGramSelect = document.getElementById('ngram-select');
-    nGramSelect.addEventListener('change', () => {
-        const selectedValue = nGramSelect.value;
+    if (documents.length > 1) {
+        const nGramSelect = document.getElementById('ngram-select');
+        nGramSelect.addEventListener('change', () => {
+            const selectedValue = nGramSelect.value;
 
-        if (!selectedValue) {
-            alert('Please select a gram value.');
-            return;
-        }
+            if (!selectedValue) {
+                alert('Please select a gram value.');
+                return;
+            }
 
-        const n = parseInt(selectedValue, 10);
-        clusterState.nGramValue = n; // 保存 n 的值
-        clusterState.nGramDict = calculateNGramFrequency(documents, n);
-        console.log(`N-Gram Frequencies for Gram = ${n}:`, clusterState.nGramDict);
-    });
+            const n = parseInt(selectedValue, 10);
+            clusterState.nGramValue = n; // 保存 n 的值
+            clusterState.nGramDict = calculateNGramFrequency(documents, n);
+            console.log(`N-Gram Frequencies for Gram = ${n}:`, clusterState.nGramDict);
+        });
+    }
 
     document.querySelectorAll('.doc-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -237,10 +244,55 @@ function highlightText(text, nGramDict, threshold) {
     return highlightedText.join(" ");
 }
 
+// Get Cluster Document Count
+function getClusterDocumentCount(clusterKey) {
+    // 分解 clusterKey，例如 "creative_cluster_1"
+    const [dataset, , clusterIndex] = clusterKey.split("_");
+    const jsonPath = dataset === "creative" ? creativeJsonPath : practicalJsonPath;
+
+    return new Promise((resolve, reject) => {
+        // 從對應 JSON 文件中獲取資料
+        fetch(jsonPath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load JSON: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(jsonData => {
+                // 尋找指定的 cluster，並返回 document 數量
+                const clusterData = jsonData[parseInt(clusterIndex) - 1]; // Cluster 索引是從 1 開始的
+                if (clusterData) {
+                    resolve(clusterData.length); // 返回文件數量
+                } else {
+                    resolve(0); // 如果找不到對應的 cluster，返回 0
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching cluster data:", error);
+                reject(error);
+            });
+    });
+}
+
 // Show Document Content with highlighting
-function showDocument(doc, id, clusterKey) {
+async function showDocument(doc, id, clusterKey) {
     const clusterState = window.clusterStates[clusterKey];
-    if (!clusterState.nGramValue || !Object.keys(clusterState.nGramDict).length) {
+    let one_doc_in_cluster = false;
+
+    const count = await getClusterDocumentCount(clusterKey);
+
+    if (count == null) {
+        console.log("Failed to retrieve document count.");
+    } else if (count === 1) {
+        one_doc_in_cluster = true;
+    } else if (count > 1) {
+        one_doc_in_cluster = false;
+    }
+
+    console.log("one_doc_in_cluster: ", one_doc_in_cluster);
+
+    if ((!clusterState.nGramValue || !Object.keys(clusterState.nGramDict).length) && (!one_doc_in_cluster)) {
         alert("Please calculate n-grams first.");
         return;
     }
