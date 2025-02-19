@@ -6,12 +6,13 @@ library(readr)
 # Read GenAI CSV data and apply filters
 csv_reader <- function(csv_file_path = 'data/text_data/extracted_behavior_pattern_data.csv',
                       filter_conditions = list(),
-                      num_rows = NULL) {
+                      num_rows = NULL,
+                      remove_duplicates = FALSE) {
 
   # Read CSV data
   data <- read_csv(csv_file_path)
 
-  # Transform user_id as integer and sorting in ascending order
+  # Transform user_id as integer and other columns; sort in ascending order
   data <- data %>%
     mutate(user_id = as.integer(user_id),
            use_ai = as.numeric(use_ai),
@@ -31,6 +32,11 @@ csv_reader <- function(csv_file_path = 'data/text_data/extracted_behavior_patter
     }
   }
 
+  # Drop rows with duplicate ids if specified
+  if (remove_duplicates) {
+    data <- data %>% group_by(user_id) %>% slice_head(n = 1) %>% ungroup()
+  }
+
   # Return head "n" of rows as filtered data if specified num_rows
   if (!is.null(num_rows)) {
     data <- head(data, num_rows)
@@ -45,7 +51,7 @@ file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
 
 # Define multiple filter conditions as strings
 filter_conditions <- list(
-  "use_ai == 0",
+  # "use_ai == 0",
   "task_type == 'PRACTICAL'"
 )
 

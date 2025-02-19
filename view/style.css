@@ -180,8 +180,8 @@ hr {
 /* N-gram Disabled Style */
 .ngram-disabled {
     color: #b0b0b0; /* 更淺的灰色 */
-    font-size: 16px; /* 更小的字體 */
-    line-height: 1.2; /* 減少行高 */
+    font-size: 12px; /* 更小的字體 */
+    line-height: 0.15; /* 減少行高 */
     margin-top: 5px; /* 減少與其他內容的間距 */
     font-style: italic; /* 斜體樣式 */
 }
