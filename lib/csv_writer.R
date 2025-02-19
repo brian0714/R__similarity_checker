@@ -41,13 +41,13 @@ csv_writer <- function(users, similarities) {
     # print(head(df, 5))
 
     # 定義 CSV 檔案路徑
-    csv_file_path <- paste0(output_dir, "/", similarity_name, "_similarity_checker_", datetime, ".csv")
+    csv_file_path <- paste0(output_dir, "/", similarity_name, "_checker_", datetime, ".csv")
 
     # 將資料框寫入 CSV 檔案
     write.csv(df, file = csv_file_path, row.names = FALSE)
 
     # 成功訊息
-    cat("CSV file - '", similarity_name, "_similarity_checker_", datetime, ".csv' has been created.\n")
+    cat("CSV file - '", similarity_name, "_checker_", datetime, ".csv' has been created.\n")
 
     # 將當前 df 存入 dfs 列表中
     dfs[[similarity_name]] <- df

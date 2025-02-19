@@ -161,7 +161,7 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
 
   # 顯示每個群集的成員
   cat("Cluster members:\n")
-  cat("Cluster members:\n")
+  # cat("Cluster members:\n")
   for (i in 1:k) {
     # 列出每個群組的成員
     cat("Cluster", i, "( size =", length(names(clusters[clusters == i])), "):", names(clusters[clusters == i]), "\n")
@@ -226,12 +226,12 @@ output_path_complete <- "output/viz/dendrogram/winnowing_dendrogram_complete.png
 
 # 範例使用，計算 Silhouette scores 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/silhouette_scores/winnowing_silhouette_scores_plot.png"
-# optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 10)
+# optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 100)
 # cat("Optimal k (Silhouette scores):", optimal_k, "\n")
 
 # 範例使用，計算 Elbow method 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-# optimal_k <- elbow_method(file_path, output_path, max_k = 10)
+# optimal_k <- elbow_method(file_path, output_path, max_k = 100)
 # cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 範例使用，繪製帶有切割結果的樹狀圖

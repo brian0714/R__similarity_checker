@@ -128,7 +128,7 @@ json_file_path <- write_list_to_json(clusters, output_name=output_name)
 output_name <- paste0(TASK_TYPE, "_text_clusters_")
 # replace_ids_with_submissions(json_file_path, file_path, task_type=TASK_TYPE, output_name=output_name)
 
-# 執行函式
+# 執行函式輸出cluster_stats
 # cluster_stats <- calculate_cluster_stats(df, clusters)
 # 檢視 cluster_stats 結果
 # cat(strrep("=", 50), "\nCluster stats output:\n")
