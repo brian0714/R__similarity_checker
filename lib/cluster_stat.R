@@ -110,7 +110,7 @@ similarity_file_path <- "output/R_output/CSV_output/creative_cosine_similarity_s
 
 # 計算 Elbow method 並繪製最佳 k 值的圖表
 output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-optimal_k <- elbow_method(similarity_file_path, output_path, max_k = 10)
+optimal_k <- elbow_method(similarity_file_path, output_path, max_k = 100)
 cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 繪製帶有切割結果的樹狀圖

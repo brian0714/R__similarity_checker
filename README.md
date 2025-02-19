@@ -45,11 +45,14 @@ Example similarity matrix:
 
 ### Step 2: Cluster Visualization
 Use `matrix_visualization.R` to read the similarity matrix file.
+
 (Perform hierarchical clustering currently)
 
 1. Choose a **linkage method** (e.g., `average`).
 2. Select a **clustering evaluation metric** for determine the optimal number k of clusters (e.g., `Silhouette scores` or `Elbow method`).
 3. Generate a **dendrogram with clustering results**.
+
+Note: Step 2 will be concluded in step 1 in the future.
 
 ---
 

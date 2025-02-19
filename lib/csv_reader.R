@@ -5,12 +5,13 @@ library(readr)
 
 # Read GenAI CSV data and apply filters
 csv_reader <- function(csv_file_path = 'data/text_data/extracted_behavior_pattern_data.csv',
+                      show_col_types = TRUE,
                       filter_conditions = list(),
                       num_rows = NULL,
                       remove_duplicates = FALSE) {
 
   # Read CSV data
-  data <- read_csv(csv_file_path)
+  data <- read_csv(csv_file_path, show_col_types = show_col_types)
 
   # Transform user_id as integer and other columns; sort in ascending order
   data <- data %>%
@@ -56,7 +57,7 @@ filter_conditions <- list(
 )
 
 # Call the function
-# df <- csv_reader(file_path, filter_conditions = filter_conditions)
+df <- csv_reader(file_path, filter_conditions = filter_conditions)
 
 # Show the number of rows
-# print(nrow(df))
+print(nrow(df))

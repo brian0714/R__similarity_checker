@@ -9,7 +9,7 @@ source("lib/csv_writer.R")
 source("lib/matrix_visualization.R")
 
 # Define the compare_matrix_generator function in R
-compare_matrix_generator <- function(input_file_path, filter_conditions) {
+compare_matrix_generator <- function(input_file_path, filter_conditions = list()) {
   start_time <- Sys.time()
 
   # Step 1: Read the CSV file and extract "user_id" and "final_submission"
@@ -108,7 +108,7 @@ file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
 # Define multiple filter conditions as strings
 filter_conditions <- list(
   # "use_ai == 1",
-  "task_type == 'PRACTICAL'" # "PRACTICAL" or "CREATIVE"
+  "task_type == 'CREATIVE'" # "PRACTICAL" or "CREATIVE"
 )
 # filter_conditions <- list()
 
