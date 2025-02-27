@@ -1,11 +1,14 @@
 # install.packages("dendextend")
 # install.packages("cluster")
+# install.packages("factoextra")
 
 source("lib/csv_reader.R")
 # Load necessary libraries
 library(pheatmap)
 library(dendextend)
 library(cluster)
+library(ggplot2)
+# library(factoextra)
 
 # Heatmap plot function
 plot_similarity_heatmap <- function(file_path = NULL, df = NULL, output_path) {
@@ -95,12 +98,12 @@ calculate_silhouette_scores <- function(file_path, output_path, method = "averag
     return(best_k)
 }
 
-# Elbow method function for determining optimal k
+# Elbow method function for determining optimal k (適用於相似度矩陣)
 elbow_method <- function(file_path, output_path, max_k = 10) {
-  # Load the matrix from CSV
+  # 讀取 CSV
   matrix_data <- read.csv(file_path)
 
-  # 移除 user_id 欄位，並將其轉換為矩陣格式
+  # 移除 user_id 欄位，轉換成數值矩陣
   matrix_data_clean <- as.matrix(matrix_data[,-1])
   rownames(matrix_data_clean) <- matrix_data$user_id
   colnames(matrix_data_clean) <- matrix_data$user_id
@@ -111,25 +114,31 @@ elbow_method <- function(file_path, output_path, max_k = 10) {
     cat("Warning in elbow method: Missing or invalid values detected and replaced with 0.\n")
   }
 
-  # 計算每個 k 的 SSE
+  # **轉換相似度為距離矩陣**
+  distance_matrix <- as.dist(1 - matrix_data_clean)
+
+  # **使用 MDS (多維尺度分析) 轉換為特徵矩陣 (n x d)**
+  feature_matrix <- cmdscale(distance_matrix, k = 5)  # ✅ 降維到 5 維
+
+  # 計算每個 k 的 SSE (Sum of Squared Errors)
   sse <- numeric(max_k - 1)
   for (k in 2:max_k) {
-    kmeans_result <- kmeans(matrix_data_clean, centers = k, nstart = 25)
+    kmeans_result <- kmeans(feature_matrix, centers = k, nstart = 25)
     sse[k - 1] <- kmeans_result$tot.withinss  # SSE
   }
 
-  # 繪製 Elbow curve 並標示 elbow point
+  # 繪製 Elbow curve
   png(output_path, width = 800, height = 600)
   plot(2:max_k, sse, type = "b", col = "blue", pch = 4,
        xlab = "k", ylab = "SSE (Sum of Squared Errors)",
        main = paste("Elbow Method for Optimal k ( k range in max ", max_k, ")"))
 
-  # 找到 elbow point 的 k 值（SSE 的變化開始減緩）
+  # 找到 elbow point
   elbow_k <- which.min(diff(diff(sse))) + 2
   points(elbow_k, sse[elbow_k - 1], col = "red", pch = 19, cex = 1.5)
   text(elbow_k, sse[elbow_k - 1], labels = paste("Elbow at k =", elbow_k), pos = 4, col = "red")
 
-  dev.off()  # 關閉圖形
+  dev.off()
   return(elbow_k)
 }
 
@@ -208,27 +217,25 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
 # Example usage
 # Case 1: Using file_path
 # file_path <- "output/R_output/CSV_output/practical_cosine_similarity_checker_202502200503.csv"
-file_path <- "output/R_output/CSV_output/creative_cosine_similarity_checker_202502200504.csv"
-# Matrix with all data
-# file_path <- "output/R_output/CSV_output/winnowing_similarity_similarity_checker_202411070948.csv"
+# file_path <- "output/R_output/CSV_output/creative_cosine_similarity_checker_202502200504.csv"
 
 # 範例使用，繪製相似度熱度圖
-output_path <- "output/viz/heatmap/winnowing_similarity_heatmap.png"
+# output_path <- "output/viz/heatmap/winnowing_similarity_heatmap.png"
 # plot_similarity_heatmap(file_path = file_path, output_path = output_path)
 
 # 範例使用，使用不同的連結方法繪製樹狀圖並指定不同的 linkage method 的繪圖產出位置
-output_path_average <- "output/viz/dendrogram/winnowing_dendrogram_average.png"
-output_path_single <- "output/viz/dendrogram/winnowing_dendrogram_single.png"
-output_path_complete <- "output/viz/dendrogram/winnowing_dendrogram_complete.png"
+# output_path_average <- "output/viz/dendrogram/winnowing_dendrogram_average.png"
+# output_path_single <- "output/viz/dendrogram/winnowing_dendrogram_single.png"
+# output_path_complete <- "output/viz/dendrogram/winnowing_dendrogram_complete.png"
 # plot_dendrogram(file_path, method = "average", output_path = output_path_average)
 # plot_dendrogram(file_path, method = "single", output_path = output_path_single)
 # plot_dendrogram(file_path, method = "complete", output_path = output_path_complete)
 
 # 範例使用，計算 Silhouette scores 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/silhouette_scores/winnowing_silhouette_scores_plot.png"
-output_path <- "output/viz/silhouette_scores/cosine_silhouette_scores_plot.png"
-optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 10)
-cat("Optimal k (Silhouette scores):", optimal_k, "\n")
+# output_path <- "output/viz/silhouette_scores/cosine_silhouette_scores_plot.png"
+# optimal_k <- calculate_silhouette_scores(file_path, output_path, method = "average", max_k = 10)
+# cat("Optimal k (Silhouette scores):", optimal_k, "\n")
 
 # 範例使用，計算 Elbow method 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
@@ -239,7 +246,7 @@ cat("Optimal k (Silhouette scores):", optimal_k, "\n")
 # 範例使用，繪製帶有切割結果的樹狀圖
 # output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
 output_path <- "output/viz/dendrogram/cosine_dendrogram_with_cut.png"
-plot_dendrogram_with_cut(file_path, task_type = "CREATIVE", method = "average", k = optimal_k, output_path = output_path)
+# plot_dendrogram_with_cut(file_path, task_type = "CREATIVE", method = "average", k = optimal_k, output_path = output_path)
 
 # Case 2: Using df directly
 # Assuming df is a pre-loaded data frame with similar structure

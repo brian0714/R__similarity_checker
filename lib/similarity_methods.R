@@ -47,15 +47,26 @@ jaccard_similarity <- function(text1, text2, ngram = NULL) {
 }
 
 # Cosine Similarity
-cosine_similarity <- function(text1, text2) {
-  freq1 <- table(unlist(strsplit(text1, "\\s+")))
-  freq2 <- table(unlist(strsplit(text2, "\\s+")))
+cosine_similarity <- function(text1, text2, tokenize_method = "word") {
+  freq1 <- table(tokenize(text1, method = tokenize_method))
+  freq2 <- table(tokenize(text2, method = tokenize_method))
+  # cat("Frequency 1:", freq1, "\n")
+  # cat("Frequency 2:", freq2, "\n")
 
-  common <- intersect(names(freq1), names(freq2))
-  if (length(common) == 0) return(0)
+  # 建立完整詞彙表 (不只是 common words)
+  full_vocab <- union(names(freq1), names(freq2))
+  # cat("Full Vocab:", full_vocab, "\n")
 
-  vec1 <- freq1[common]
-  vec2 <- freq2[common]
+  # 確保向量完整，對齊所有詞，沒有的詞補 0
+  vec1 <- as.numeric(freq1[full_vocab])
+  vec2 <- as.numeric(freq2[full_vocab])
+
+  # 將 NA (因為某些詞在某個文本中缺失) 轉為 0
+  vec1[is.na(vec1)] <- 0
+  vec2[is.na(vec2)] <- 0
+
+  # cat("Vector 1:", vec1, "\n")
+  # cat("Vector 2:", vec2, "\n")
 
   similarity <- sum(vec1 * vec2) / (sqrt(sum(vec1 ^ 2)) * sqrt(sum(vec2 ^ 2)))
   return(round(similarity, 2))
@@ -77,7 +88,7 @@ hamming_distance <- function(text1, text2) {
     stop("Strings must be of equal length")
   }
 
-  return(sum(unlist(strsplit(text1, "")) != unlist(strsplit(text2, ""))))
+  return(sum(tokenize(text1, method = "word") != tokenize(text2, method = "word")))
 }
 
 normalized_hamming_distance <- function(text1, text2) {
@@ -86,18 +97,14 @@ normalized_hamming_distance <- function(text1, text2) {
 
 # Overlap Coefficient
 overlap_coefficient <- function(text1, text2) {
-  set1 <- unique(unlist(strsplit(text1, "\\s+")))
-  set2 <- unique(unlist(strsplit(text2, "\\s+")))
+  set1 <- unique(tokenize(text1, method = "word"))
+  set2 <- unique(tokenize(text1, method = "word"))
 
   intersection <- length(intersect(set1, set2))
   return(intersection / min(length(set1), length(set2)))
 }
 
 # Winnowing Algorithm (simplified for R)
-winnow_tokenize <- function(text) {
-  return(tolower(unlist(strsplit(text, "\\W+"))))
-}
-
 hash_tokens <- function(tokens) {
   # Filter out empty strings or invalid tokens
   tokens <- tokens[tokens != "" & !is.na(tokens)]
@@ -144,8 +151,6 @@ fingerprints <- function(k_grams, w) {
 }
 
 winnowing <- function(doc1, doc2, k = 1, w = 2) {
-  # tokens1 <- winnow_tokenize(doc1)
-  # tokens2 <- winnow_tokenize(doc2)
   tokens1 <- tokenize(doc1)
   tokens2 <- tokenize(doc2)
 
@@ -166,8 +171,8 @@ winnowing <- function(doc1, doc2, k = 1, w = 2) {
 
 # Usage examples
 ## Case 1 - Similar texts
-# text1 <- "I like to read."
-# text2 <- "I love to read."
+# text1 <- "I like to read to improve myself."
+# text2 <- "I love to read to improve myself."
 
 # Case 2 - Similar meanings but different texts
 text1 = "During weekends, I like to read books."
@@ -178,7 +183,9 @@ text2 = "I love to read books on Saturday and Sunday."
 # text2 = "Multiple methods are based on NLP."
 
 # cat("Jaccard Similarity:", jaccard_similarity(text1, text2), "\n")
-# cat("Cosine Similarity:", cosine_similarity(text1, text2), "\n")
+# cat("Cosine Similarity:", cosine_similarity(text1, text2, tokenize_method = "word"), "\n")
+# cat("Cosine Similarity with bigram:", cosine_similarity(text1, text2, tokenize_method = "bigram"), "\n")
+# cat("Cosine Similarity with trigram:", cosine_similarity(text1, text2, tokenize_method = "trigram"), "\n")
 # cat("Levenshtein Similarity:", 1 - normalized_levenshtein_distance(text1, text2), "\n")
 # cat("Winnowing Similarity:", winnowing(text1, text2), "\n")
 # cat("Euclidean Similarity:", euclidean_similarity(text1, text2), "\n")

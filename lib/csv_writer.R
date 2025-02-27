@@ -2,10 +2,7 @@
 library(readr)
 
 # Define the csv_writer function
-csv_writer <- function(users, similarities) {
-  # 定義輸出資料夾路徑
-  output_dir <- "output/R_output/CSV_output"
-
+csv_writer <- function(users, similarities, output_dir = "output/R_output/CSV_output") {
   # 檢查並建立輸出資料夾
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)

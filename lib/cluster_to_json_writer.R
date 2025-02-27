@@ -3,7 +3,7 @@ library(jsonlite)
 # Function to write a list to a JSON file
 write_list_to_json <- function(data_list,
                             output_dir="output/R_output/json_output",
-                            pretty = TRUE,
+                            pretty = TRUE, # Whether to format the JSON output for readability
                             output_name = "clusters_") {
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
   json_file_path <- paste0(output_dir, "/", output_name, datetime, ".json")
@@ -45,4 +45,11 @@ replace_ids_with_submissions <- function(json_path, csv_path, task_type, output_
   json_file_path <- paste0(output_dir, "/", output_name, datetime, ".json")
   write_json(clusters_replaced, json_file_path, pretty = TRUE)
   cat("Replaced JSON written to:", json_file_path, "\n")
+}
+
+# 取 JSON 並轉換為 R list，每個元素是一個 user_id cluster
+read_json_as_clusters <- function(json_path) {
+    json_data <- fromJSON(json_path)
+    cluster_list <- lapply(json_data, as.character)  # 確保是字符型向量
+    return(cluster_list)
 }

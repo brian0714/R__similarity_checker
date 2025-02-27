@@ -9,7 +9,11 @@ source("lib/csv_writer.R")
 source("lib/matrix_visualization.R")
 
 # Define the compare_matrix_generator function in R
-compare_matrix_generator <- function(input_file_path, filter_conditions = list()) {
+compare_matrix_generator <- function(
+  input_file_path,
+  filter_conditions = list(),
+  output_dir = "output/R_output/CSV_output"
+  ) {
   start_time <- Sys.time()
 
   # Step 1: Read the CSV file and extract "user_id" and "final_submission"
@@ -39,7 +43,9 @@ compare_matrix_generator <- function(input_file_path, filter_conditions = list()
 
   # Step 2: Prepare an empty list to store all similarity matrices
   similarities <- list(
-    "cosine_similarity" = list()
+    "cosine_similarity" = list(),
+    "cosine_similarity_with_bigram" = list(),
+    "cosine_similarity_with_trigram" = list()
     # "euclidean_similarity" = list(),
     # "jaccard_similarity" = list(),
     # "levenshtein_similarity" = list(),
@@ -51,6 +57,8 @@ compare_matrix_generator <- function(input_file_path, filter_conditions = list()
   # 初始化所有相似度矩陣
     n <- length(final_submissions)
     cosine_similarity_matrix <- matrix(NA, n, n)
+    cosine_similarity_with_bigram_matrix <- matrix(NA, n, n)
+    cosine_similarity_with_trigram_matrix <- matrix(NA, n, n)
     # euclidean_similarity_matrix <- matrix(NA, n, n)
     # jaccard_similarity_matrix <- matrix(NA, n, n)
     # levenshtein_similarity_matrix <- matrix(NA, n, n)
@@ -63,6 +71,8 @@ compare_matrix_generator <- function(input_file_path, filter_conditions = list()
         if (i != j) {
           # 計算不同的相似度
           cosine_similarity_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j])
+          cosine_similarity_with_bigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "bigram")
+          cosine_similarity_with_trigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "trigram")
           # euclidean_similarity_matrix[i, j] <- euclidean_similarity(final_submissions[i], final_submissions[j])
           # jaccard_similarity_matrix[i, j] <- jaccard_similarity(final_submissions[i], final_submissions[j])
           # levenshtein_similarity_matrix[i, j] <- 1 - normalized_levenshtein_distance(final_submissions[i], final_submissions[j])
@@ -74,7 +84,9 @@ compare_matrix_generator <- function(input_file_path, filter_conditions = list()
 
     # 將結果存入 similarities 列表中
     similarities <- list(
-      "cosine_similarity" = cosine_similarity_matrix
+      "cosine_similarity" = cosine_similarity_matrix,
+      "cosine_similarity_with_bigram" = cosine_similarity_with_bigram_matrix,
+      "cosine_similarity_with_trigram" = cosine_similarity_with_trigram_matrix
       # "euclidean_similarity" = euclidean_similarity_matrix,
       # "jaccard_similarity" = jaccard_similarity_matrix,
       # "levenshtein_similarity" = levenshtein_similarity_matrix,
@@ -83,7 +95,11 @@ compare_matrix_generator <- function(input_file_path, filter_conditions = list()
     )
 
   # Step 4: Write the similarity matrix to CSV
-  dfs <- csv_writer(unique_user_ids, similarities)
+  dfs <- csv_writer(
+    unique_user_ids,
+    similarities,
+    output_dir
+  )
 
   # Calculate and round the process time
   process_time <- round(difftime(Sys.time(), start_time, units = "secs"), 2)
@@ -110,7 +126,10 @@ filter_conditions <- list(
   # "use_ai == 1",
   "task_type == 'CREATIVE'" # "PRACTICAL" or "CREATIVE"
 )
-# filter_conditions <- list()
 
 # Call the function with the file path and filter conditions
-similarities <- compare_matrix_generator(input_file_path = file_path, filter_conditions = filter_conditions)
+similarities <- compare_matrix_generator(
+  input_file_path = file_path,
+  filter_conditions = filter_conditions,
+  output_dir = "output/R_output/CSV_output/CREATIVE_similarity_matrices"
+)

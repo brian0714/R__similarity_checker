@@ -1,7 +1,9 @@
 source("lib/csv_reader.R")
 source("lib/matrix_visualization.R")
 source("lib/cluster_to_json_writer.R")
+source("lib/term_document_matrix_generator.R")
 library(writexl)
+library(glue)
 
 # 定義函式以計算集群中的屬性統計
 calculate_cluster_stats <- function(df, clusters) {
@@ -91,7 +93,7 @@ write_cluster_use_stats_to_excel <- function(cluster_stats, output_dir="output/R
 # Main script
 # Set the input file path
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
-TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 
 # Define multiple filter conditions as strings
 filter_conditions <- list(
@@ -104,23 +106,28 @@ df <- csv_reader(file_path, filter_conditions = filter_conditions)
 
 # Load the similarity data from CSV
 # similarity_file_path <- "output/R_output/CSV_output/winnowing_similarity_similarity_checker_202411070948.csv"
-# similarity_file_path <- "output/R_output/CSV_output/practical_cosine_similarity_similarity_checker_202501222332.csv"
-similarity_file_path <- "output/R_output/CSV_output/creative_cosine_similarity_similarity_checker_202501230452.csv"
+similarity_file_path <- "output/R_output/CSV_output/practical_cosine_similarity_checker_202502200503.csv"
+# similarity_file_path <- "output/R_output/CSV_output/creative_cosine_similarity_checker_202502200504.csv"
 
 
 # 計算 Elbow method 並繪製最佳 k 值的圖表
-output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-optimal_k <- elbow_method(similarity_file_path, output_path, max_k = 100)
+output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
+optimal_k <- elbow_method(similarity_file_path, output_path, max_k = 10)
 cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 繪製帶有切割結果的樹狀圖
-output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
+output_path <- "output/viz/dendrogram/cosine_dendrogram_with_cut.png"
 # Use optimal_k from elbow method
 # clusters <- plot_dendrogram_with_cut(file_path, method = "average", k = optimal_k, output_path = output_path)
 # Use fixed k value (e.g. 10)
-clusters <- plot_dendrogram_with_cut(similarity_file_path, task_type = TASK_TYPE, method = "average", k = 10, output_path = output_path)
-cat("Clusters:")
-print(clusters)
+clusters <- plot_dendrogram_with_cut(
+  similarity_file_path,
+  task_type = TASK_TYPE,
+  method = "average",
+  k = 9,
+  output_path = output_path)
+# cat("Clusters:")
+# print(clusters)
 
 # 將 cluster 寫入 JSON
 output_name <- paste0(TASK_TYPE, "_clusters_")
@@ -139,3 +146,67 @@ output_name <- paste0(TASK_TYPE, "_text_clusters_")
 # write_cluster_use_stats_to_excel(cluster_stats, output_name=output_name)
 # cat("Cluster use stats written to", output_dir, "\n")
 
+process_user_clusters <- function(
+  json_path,
+  csv_file_path="data/text_data/extracted_behavior_pattern_data.csv"
+) {
+    user_clusters <- read_json_as_clusters(json_path)  # 讀取 JSON
+    filtered_data_list <- list()  # 用來存每個 cluster 的篩選結果
+
+    for (i in seq_along(user_clusters)) {
+        user_vector <- user_clusters[[i]]
+
+        # 🔹 動態產生 `filter_conditions`
+        filter_conditions <- list(paste0("user_id %in% c(", paste(user_vector, collapse = ", "), ")"))
+
+        # 🔹 調用 `csv_reader()` 來篩選數據
+        filtered_data <- csv_reader(
+          csv_file_path,
+          show_col_types = FALSE,
+          filter_conditions = filter_conditions
+        )
+
+        # 存入 list（每個 cluster 一組數據）
+        filtered_data_list[[i]] <- filtered_data
+
+        # 顯示進度
+        cat("完成處理 Cluster", i, "- user 數:", length(user_vector), "\n")
+    }
+
+    return(filtered_data_list)
+}
+filtered_dfs <- process_user_clusters(json_path=json_file_path)
+
+# 進行文本分析
+datetime <- format(Sys.time(), "%Y%m%d%H%M")
+for (i in seq_along(filtered_dfs)) {
+  cluster_i <- i
+  df <- filtered_dfs[[i]] # 取得第 i 個 cluster 的數據
+  final_submission <- as.vector(df$final_submission)
+
+  # Create a text corpus from nlp_functions.R
+  corpus <- create_corpus(final_submission)
+  cat("Corpus Size:", length(corpus), "\n")
+  # Generate the term-document matrix
+  tdm_matrix <- generate_tdm(corpus)
+  # Generate the term frequency data frame
+  term_freq_df <- generate_term_freq_df(tdm_matrix)
+
+  # 定義資料夾路徑
+  dir_path_barplot <- glue("output/viz/term_count_barplot/{TASK_TYPE}/{datetime}/")
+  dir_path_wordcloud <- glue("output/viz/wordcloud/{TASK_TYPE}/{datetime}/")
+
+  # 確保資料夾存在
+  dir.create(dir_path_barplot, recursive = TRUE, showWarnings = FALSE)
+  dir.create(dir_path_wordcloud, recursive = TRUE, showWarnings = FALSE)
+
+  # 繪製前 10 個最高頻詞 bar plot
+  top_n <- 10
+  output_path <- glue("{dir_path_barplot}/cluster_{cluster_i}_top_{top_n}_terms.png")
+  plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
+
+  # 繪製前 50 個最高頻詞 word cloud
+  top_n <- 50
+  output_path <- glue("{dir_path_wordcloud}/cluster_{cluster_i}_top_{top_n}_wordcloud.png")
+  plot_wordcloud(term_freq_df, top_n = top_n, output_path = output_path)
+}
