@@ -1,17 +1,23 @@
 # install.packages("wordcloud")
 # install.packages("RColorBrewer")
+# install.packages("udpipe")
 source("lib/csv_reader.R")
 # Load required libraries
 library(tm)
-library(textTinyR)
-library(SnowballC)
+library(textTinyR) # for ngram_as_strings
+library(SnowballC) # for stemming
 library(ggplot2)
 library(wordcloud)
-library(RColorBrewer)
-library(pheatmap)
+library(RColorBrewer) # for wordcloud
+library(pheatmap) # for heatmap
+library(udpipe) # for POS taggng
 
 # Create a text corpus
-create_corpus <- function(texts_vector = c()) {
+create_corpus <- function(
+  texts_vector = c(),
+  return_user_id = FALSE,
+  POS = FALSE
+) {
   # Check if text data is provided
   if (length(texts_vector) == 0) {
     stop("No text data provided")
@@ -24,8 +30,41 @@ create_corpus <- function(texts_vector = c()) {
     filter_conditions <- list(
       paste0("task_type == '", texts_vector, "'")
     )
-    df <- csv_reader(file_path, filter_conditions = filter_conditions, remove_duplicates = TRUE)
+    df <- csv_reader(
+      file_path,
+      filter_conditions = filter_conditions,
+      show_col_types = FALSE,
+      remove_duplicates = TRUE
+    )
     texts_vector <- as.vector(df$final_submission)
+  }
+
+  # 使用 `udpipe` 進行 POS 標註
+  filter_pos <- function(text, POS) {
+    if (POS == FALSE) return(text)  # 不過濾，直接回傳原文本
+
+    # 選擇語言模型 (English-only so far)
+    ud_model <- udpipe_load_model("model/english-ewt-ud-2.5-191206.udpipe")
+
+    # 進行詞性標註
+    annotated <- udpipe_annotate(ud_model, x = text)
+    annotated <- as.data.frame(annotated)
+
+    # 選擇特定詞性
+    if (!POS %in% c("NOUN", "VERB", "ADJ")) {
+      cat("未知的 POS 選擇，請使用 '名詞', '動詞' 或 '形容詞'")
+      return(text)
+    } else {
+      filtered_words <- annotated$lemma[annotated$upos == POS]
+    }
+
+    # 將篩選後的詞彙組合成文本
+    return(paste(filtered_words, collapse = " "))
+  }
+
+  # 過濾 POS
+  if (POS != FALSE) {
+    texts_vector <- sapply(texts_vector, filter_pos, POS = POS)
   }
 
   # Create a text corpus
@@ -62,7 +101,11 @@ create_corpus <- function(texts_vector = c()) {
   # Print the final preprocessed text
   # cat(str(corpus))
 
-  return(corpus)
+  if (return_user_id) {
+    return(list(corpus, df$user_id))
+  } else {
+    return(corpus)
+  }
 }
 
 # 建立大語料庫的 DTM (TF)
@@ -180,3 +223,11 @@ text2 <- "The dog sits on the mat."
 
 # result <- text_vectorizer(text1, text2, tokenize_method = "word", vectorize_method = "tfidf")
 # print(result)
+
+# test for cosine similarity
+# vec1 <- result[[1]]
+# vec2 <- result[[2]]
+# # Calculate the Cosine Similarity distance
+# distance <- sqrt(sum((vec1 - vec2) ^ 2))
+# similarity <- 1 / (1 + distance)
+# print(similarity)

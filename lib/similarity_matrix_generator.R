@@ -43,9 +43,9 @@ compare_matrix_generator <- function(
 
   # Step 2: Prepare an empty list to store all similarity matrices
   similarities <- list(
-    "cosine_similarity" = list(),
-    "cosine_similarity_with_bigram" = list(),
-    "cosine_similarity_with_trigram" = list()
+    "cosine_similarity" = list()
+    # "cosine_similarity_with_bigram" = list(),
+    # "cosine_similarity_with_trigram" = list(),
     # "euclidean_similarity" = list(),
     # "jaccard_similarity" = list(),
     # "levenshtein_similarity" = list(),
@@ -57,8 +57,8 @@ compare_matrix_generator <- function(
   # 初始化所有相似度矩陣
     n <- length(final_submissions)
     cosine_similarity_matrix <- matrix(NA, n, n)
-    cosine_similarity_with_bigram_matrix <- matrix(NA, n, n)
-    cosine_similarity_with_trigram_matrix <- matrix(NA, n, n)
+    # cosine_similarity_with_bigram_matrix <- matrix(NA, n, n)
+    # cosine_similarity_with_trigram_matrix <- matrix(NA, n, n)
     # euclidean_similarity_matrix <- matrix(NA, n, n)
     # jaccard_similarity_matrix <- matrix(NA, n, n)
     # levenshtein_similarity_matrix <- matrix(NA, n, n)
@@ -71,8 +71,8 @@ compare_matrix_generator <- function(
         if (i != j) {
           # 計算不同的相似度
           cosine_similarity_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j])
-          cosine_similarity_with_bigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "bigram")
-          cosine_similarity_with_trigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "trigram")
+          # cosine_similarity_with_bigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "bigram")
+          # cosine_similarity_with_trigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "trigram")
           # euclidean_similarity_matrix[i, j] <- euclidean_similarity(final_submissions[i], final_submissions[j])
           # jaccard_similarity_matrix[i, j] <- jaccard_similarity(final_submissions[i], final_submissions[j])
           # levenshtein_similarity_matrix[i, j] <- 1 - normalized_levenshtein_distance(final_submissions[i], final_submissions[j])
@@ -84,9 +84,9 @@ compare_matrix_generator <- function(
 
     # 將結果存入 similarities 列表中
     similarities <- list(
-      "cosine_similarity" = cosine_similarity_matrix,
-      "cosine_similarity_with_bigram" = cosine_similarity_with_bigram_matrix,
-      "cosine_similarity_with_trigram" = cosine_similarity_with_trigram_matrix
+      "cosine_similarity" = cosine_similarity_matrix
+      # "cosine_similarity_with_bigram" = cosine_similarity_with_bigram_matrix,
+      # "cosine_similarity_with_trigram" = cosine_similarity_with_trigram_matrix
       # "euclidean_similarity" = euclidean_similarity_matrix,
       # "jaccard_similarity" = jaccard_similarity_matrix,
       # "levenshtein_similarity" = levenshtein_similarity_matrix,
@@ -124,12 +124,12 @@ file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
 # Define multiple filter conditions as strings
 filter_conditions <- list(
   # "use_ai == 1",
-  "task_type == 'CREATIVE'" # "PRACTICAL" or "CREATIVE"
+  "task_type == 'PRACTICAL'" # "PRACTICAL" or "CREATIVE"
 )
 
 # Call the function with the file path and filter conditions
 similarities <- compare_matrix_generator(
   input_file_path = file_path,
   filter_conditions = filter_conditions,
-  output_dir = "output/R_output/CSV_output/CREATIVE_similarity_matrices"
+  output_dir = "output/R_output/CSV_output/PRACTICAL_similarity_matrices"
 )

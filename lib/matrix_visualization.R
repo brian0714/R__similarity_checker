@@ -100,18 +100,26 @@ calculate_silhouette_scores <- function(file_path, output_path, method = "averag
 
 # Elbow method function for determining optimal k (適用於相似度矩陣)
 elbow_method <- function(file_path, output_path, max_k = 10) {
-  # 讀取 CSV
-  matrix_data <- read.csv(file_path)
+  # 讀取 CSV 或使用現有的相似度矩陣
+  if (is.character(file_path)) {
+    # 讀取 CSV 檔案
+    matrix_data <- read.csv(file_path)
 
-  # 移除 user_id 欄位，轉換成數值矩陣
-  matrix_data_clean <- as.matrix(matrix_data[,-1])
-  rownames(matrix_data_clean) <- matrix_data$user_id
-  colnames(matrix_data_clean) <- matrix_data$user_id
+    # 移除 user_id 欄位，轉換成數值矩陣
+    matrix_data_clean <- as.matrix(matrix_data[,-1])
+    rownames(matrix_data_clean) <- matrix_data$user_id
+    colnames(matrix_data_clean) <- matrix_data$user_id
 
-  # 檢查並處理缺失值或無效值
-  if (any(is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean))) {
-    matrix_data_clean[is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean)] <- 0
-    cat("Warning in elbow method: Missing or invalid values detected and replaced with 0.\n")
+    # 檢查並處理缺失值或無效值
+    if (any(is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean))) {
+      matrix_data_clean[is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean)] <- 0
+      cat("Warning in elbow method: Missing or invalid values detected and replaced with 0.\n")
+    }
+  } else if (is.matrix(file_path)) {
+    # 直接使用提供的數值矩陣
+    matrix_data_clean <- file_path
+  } else {
+    stop("Error: file_path must be either a file path (character) or a matrix.")
   }
 
   # **轉換相似度為距離矩陣**
@@ -217,7 +225,7 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
 # Example usage
 # Case 1: Using file_path
 # file_path <- "output/R_output/CSV_output/practical_cosine_similarity_checker_202502200503.csv"
-# file_path <- "output/R_output/CSV_output/creative_cosine_similarity_checker_202502200504.csv"
+file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_similarity_checker_202502280632.csv"
 
 # 範例使用，繪製相似度熱度圖
 # output_path <- "output/viz/heatmap/winnowing_similarity_heatmap.png"
@@ -239,7 +247,7 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
 
 # 範例使用，計算 Elbow method 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-# output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
+output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
 # optimal_k <- elbow_method(file_path, output_path, max_k = 10)
 # cat("Optimal k (elbow point):", optimal_k, "\n")
 

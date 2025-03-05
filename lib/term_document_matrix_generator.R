@@ -12,7 +12,7 @@ generate_tdm <- function(corpus) {
   # Create a term-document matrix
   tdm <- TermDocumentMatrix(corpus)
   tdm_matrix <- as.matrix(tdm)
-  colnames(tdm_matrix) <- df$user_id
+  # colnames(tdm_matrix) <- df$user_id
   cat("TDM Matrix Size:", dim(tdm_matrix)[1], "x", dim(tdm_matrix)[2], "\n")
   # print(tdm_matrix)
 
@@ -38,13 +38,13 @@ file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
 TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
-# Create a text corpus from nlp_functions.R
-corpus <- create_corpus(texts_vector = TASK_TYPE)
-cat("Corpus Size:", length(corpus), "\n")
-# Generate the term-document matrix
-tdm_matrix <- generate_tdm(corpus)
-# Generate the term frequency data frame
-term_freq_df <- generate_term_freq_df(tdm_matrix)
+## Create a text corpus from nlp_functions.R
+# corpus <- create_corpus(texts_vector = TASK_TYPE)
+# cat("Corpus Size:", length(corpus), "\n")
+## Generate the term-document matrix
+# tdm_matrix <- generate_tdm(corpus)
+## Generate the term frequency data frame
+# term_freq_df <- generate_term_freq_df(tdm_matrix)
 
 # EDA: Plot a barplot of the top terms
 plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/term_count_barplot/top_10_terms_plot.png") {
@@ -66,7 +66,7 @@ plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/t
 # 使用範例：只繪製前 10 個最高頻詞
 top_n <- 10
 output_path <- paste0("output/viz/term_count_barplot/", TASK_TYPE, "_top_", top_n, "_terms_", datetime, ".png")
-plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
+# plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
 
 # EDA: Plot a word cloud
 plot_wordcloud <- function(term_freq_df, top_n = NULL, output_path = "output/viz/wordcloud/wordcloud.png") {
@@ -89,7 +89,7 @@ plot_wordcloud <- function(term_freq_df, top_n = NULL, output_path = "output/viz
 # 使用範例：只繪製前 50 個最高頻詞
 top_n <- 50
 output_path <- paste0("output/viz/wordcloud/", TASK_TYPE, "_top_", top_n,"_wordcloud_", datetime, ".png")
-plot_wordcloud(term_freq_df, top_n = top_n, output_path = output_path)
+# plot_wordcloud(term_freq_df, top_n = top_n, output_path = output_path)
 
 # EDA: Plot a heatmap of the term-document matrix
 plot_tdm_heatmap <- function(tdm_matrix, output_path = "output/viz/heatmap/tdm/tdm_heatmap.png",

@@ -6,7 +6,6 @@ library(textTinyR)
 library(gmp)
 source("lib/nlp_functions.R")
 
-
 # Euclidean Similarity
 euclidean_similarity <- function(text1, text2, tokenize_method = "word", vectorize_method = "bow") {
   # Use the custom text_vectorizer function to generate vectors
@@ -29,8 +28,8 @@ euclidean_similarity <- function(text1, text2, tokenize_method = "word", vectori
 
 # Jaccard Similarity
 jaccard_similarity <- function(text1, text2, ngram = NULL) {
-  words1 <- unlist(strsplit(text1, "\\s+"))
-  words2 <- unlist(strsplit(text2, "\\s+"))
+  words1 <- tokenize(text1)
+  words2 <- tokenize(text2)
 
   if (!is.null(ngram)) {
     set1 <- unique(textTinyR::ngram_as_strings(words1, ngram))
@@ -68,6 +67,15 @@ cosine_similarity <- function(text1, text2, tokenize_method = "word") {
   # cat("Vector 1:", vec1, "\n")
   # cat("Vector 2:", vec2, "\n")
 
+  # 計算 cosine similarity by tfidf
+  # result <- text_vectorizer(
+  #   text1,
+  #   text2,
+  #   tokenize_method = tokenize_method,
+  #   vectorize_method = "tfidf")
+  # vec1 <- result[[1]]
+  # vec2 <- result[[2]]
+
   similarity <- sum(vec1 * vec2) / (sqrt(sum(vec1 ^ 2)) * sqrt(sum(vec2 ^ 2)))
   return(round(similarity, 2))
 }
@@ -98,7 +106,7 @@ normalized_hamming_distance <- function(text1, text2) {
 # Overlap Coefficient
 overlap_coefficient <- function(text1, text2) {
   set1 <- unique(tokenize(text1, method = "word"))
-  set2 <- unique(tokenize(text1, method = "word"))
+  set2 <- unique(tokenize(text2, method = "word"))
 
   intersection <- length(intersect(set1, set2))
   return(intersection / min(length(set1), length(set2)))
@@ -187,6 +195,9 @@ text2 = "I love to read books on Saturday and Sunday."
 # cat("Cosine Similarity with bigram:", cosine_similarity(text1, text2, tokenize_method = "bigram"), "\n")
 # cat("Cosine Similarity with trigram:", cosine_similarity(text1, text2, tokenize_method = "trigram"), "\n")
 # cat("Levenshtein Similarity:", 1 - normalized_levenshtein_distance(text1, text2), "\n")
-# cat("Winnowing Similarity:", winnowing(text1, text2), "\n")
+# cat("Winnowing Similarity:", winnowing(text1, text2, k = 2, w = 3), "\n")
 # cat("Euclidean Similarity:", euclidean_similarity(text1, text2), "\n")
 # cat("Overlap Coefficient:", overlap_coefficient(text1, text2), "\n")
+
+# text1, text2 must in same length
+# cat("Hamming Similarity:", 1 - normalized_hamming_distance(text1, text2), "\n")
