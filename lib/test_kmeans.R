@@ -2,6 +2,10 @@ source("lib/nlp_functions.R")
 source("lib/matrix_visualization.R")
 source("lib/cluster_to_json_writer.R")
 source("lib/cluster_stat.R")
+# Load necessary libraries
+library(ggplot2)
+library(glue)
+
 
 precompute_tfidf <- function(task_type) {
   # 建立 corpus
@@ -11,13 +15,14 @@ precompute_tfidf <- function(task_type) {
   )
   corpus <- result[[1]]
   user_id <- result[[2]]
+#   cat("User ID:", user_id, "\n")
 
   # 建立 TF-IDF 矩陣
   dtm <- DocumentTermMatrix(corpus, control = list(weighting = weightTfIdf))
   tfidf_matrix <- as.matrix(dtm)
 
-  # 讓 `rownames(tfidf_matrix)` 儲存對應文本
-  rownames(tfidf_matrix) <- seq_along(user_id)
+  # 讓 `rownames(tfidf_matrix)` 儲存對應文本的 user_id
+  rownames(tfidf_matrix) <- user_id
 
   return(tfidf_matrix)
 }
@@ -27,10 +32,18 @@ compute_cosine_similarity_matrix <- function(tfidf_matrix) {
   norm_matrix <- sqrt(rowSums(tfidf_matrix^2))
   sim_matrix <- (tfidf_matrix %*% t(tfidf_matrix)) / (norm_matrix %o% norm_matrix)
   diag(sim_matrix) <- 1  # 確保對角線為 1
+
+  # **確保 rownames 繼承 user_id**
+  rownames(sim_matrix) <- rownames(tfidf_matrix)
+  colnames(sim_matrix) <- rownames(tfidf_matrix)
+
   return(sim_matrix)
 }
 
 kmeans_clustering <- function(sim_matrix, optimal_k, dim_reduce = 5) {
+  # 確保 `sim_matrix` 使用的是 `user_id`
+  user_ids <- rownames(sim_matrix)
+
   # 1️⃣ 轉換相似度矩陣為距離矩陣
   distance_matrix <- 1 - sim_matrix
 
@@ -38,19 +51,18 @@ kmeans_clustering <- function(sim_matrix, optimal_k, dim_reduce = 5) {
   feature_matrix <- cmdscale(as.dist(distance_matrix), k = dim_reduce)
 
   # 3️⃣ 執行 K-Means
+  set.seed(123)  # 確保每次結果相同
   kmeans_result <- kmeans(feature_matrix, centers = optimal_k, nstart = 25)
 
   # 4️⃣ 取得群組標籤
   clusters <- kmeans_result$cluster
 
   # 5️⃣ 建立群組 (確保輸出為 JSON-friendly 的 `list of lists`)
-  cluster_groups <- split(rownames(sim_matrix), clusters)
-  # 移除 cluster 的 index 避免變成 key
-  cluster_groups_json <- unname(lapply(cluster_groups, as.character))
+  cluster_groups <- split(user_ids, clusters)
+  cluster_groups_json <- unname(lapply(cluster_groups, as.character))  # JSON-friendly
 
   # 6️⃣ 計算每個群組的代表性文本
   representative_docs <- list()
-
   for (k in 1:optimal_k) {
     # 取得該群組的樣本索引
     cluster_indices <- which(clusters == k)
@@ -58,51 +70,105 @@ kmeans_clustering <- function(sim_matrix, optimal_k, dim_reduce = 5) {
     # 取得該群組的特徵點
     cluster_points <- feature_matrix[cluster_indices, , drop = FALSE]
 
-    # 計算每個點與該群中心的歐幾里得距離
+    # 計算每個點與該群中心的距離
     center <- kmeans_result$centers[k, ]  # 取得該群的中心
     distances <- rowSums((cluster_points - center)^2)  # 計算平方距離
 
     # 找出距離最小的文本
     closest_index <- cluster_indices[which.min(distances)]
-    representative_docs[[as.character(k)]] <- rownames(sim_matrix)[closest_index]  # 確保 JSON Key 為字串
+    representative_docs[[as.character(k)]] <- user_ids[closest_index]
+    cat("Cluster", k, "representative doc:", user_ids[closest_index], "\n")
   }
 
   # 7️⃣ 構造 JSON-friendly 結果
   cluster_result <- list(
-    cluster_groups = cluster_groups_json,  # ✅ JSON-friendly List of Lists
+    cluster_groups = cluster_groups_json,
     representative_docs = representative_docs
   )
 
-  return(cluster_result)  # ✅ 直接可寫入 JSON
+  return(cluster_result)
 }
 
+plot_kmeans_clusters <- function(sim_matrix, kmeans_result, TASK_TYPE, output_dir = "output/viz/kmeans_clusters/") {
+    # 確保資料夾存在
+    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+    # ✅ 轉換相似度矩陣為距離矩陣
+    distance_matrix <- 1 - sim_matrix
+
+    # ✅ 使用 MDS 進行 2D 降維
+    feature_matrix_2D <- cmdscale(as.dist(distance_matrix), k = 2)
+
+    # ✅ 取得分群標籤
+    clusters <- kmeans_result$cluster_groups
+
+    # ✅ 構造繪圖 DataFrame
+    plot_df <- data.frame(
+        x = feature_matrix_2D[, 1],
+        y = feature_matrix_2D[, 2],
+        cluster = as.factor(unlist(lapply(1:length(clusters), function(k) rep(k, length(clusters[[k]])))))
+    )
+
+    # ✅ 繪製散點圖
+    p <- ggplot(plot_df, aes(x = x, y = y, color = cluster)) +
+        geom_point(size = 3, alpha = 0.7) +
+        labs(title = "K-Means Clustering Visualization (2D MDS Projection)",
+             x = "MDS Dimension 1",
+             y = "MDS Dimension 2") +
+        theme_minimal() +
+        theme(legend.title = element_text(size = 12),
+              legend.text = element_text(size = 10))
+
+    # ✅ 儲存圖片
+    datetime <- format(Sys.time(), "%Y%m%d%H%M")
+    output_path <- glue("{output_dir}/{TASK_TYPE}_kmeans_clusters_{datetime}.png")
+    ggsave(output_path, plot = p, width = 8, height = 6, dpi = 300)
+
+    cat("✅ K-Means Cluster Plot saved at:", output_path, "\n")
+}
 
 # test
 TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 
 # 1️⃣ 計算 TF-IDF 矩陣
-tfidf_matrix <- precompute_tfidf(TASK_TYPE)
+# tfidf_matrix <- precompute_tfidf(TASK_TYPE)
 # print out head row of tfidf_matrix
 # cat("Head of TF-IDF Matrix:\n")
 # print(head(tfidf_matrix))
 
 # 2️⃣ 計算 Cosine Similarity 矩陣
-sim_matrix <- compute_cosine_similarity_matrix(tfidf_matrix)
-cat("Cosine Similarity Matrix Size:", dim(sim_matrix)[1], "x", dim(sim_matrix)[2], "\n")
+# sim_matrix <- compute_cosine_similarity_matrix(tfidf_matrix)
+# cat("Cosine Similarity Matrix Size:", dim(sim_matrix)[1], "x", dim(sim_matrix)[2], "\n")
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
+# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/levenshtein_similarity_checker_202502281040.csv"
+sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/levenshtein_similarity_checker_202502281037.csv"
+# output_path <- "output/viz/sse_curve/new1_cosine_sse_elbow_plot.png"
+output_path <- "output/viz/sse_curve/new1_levenshtein_sse_elbow_plot.png"
 optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
 cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 4️⃣ 執行 K-Means 並輸出分群結果
 kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)
 clusters <- kmeans_results$cluster_groups
+representative_docs <- kmeans_results$representative_docs
 
 # 5️⃣ 將 cluster 寫入 JSON
-output_name <- paste0(TASK_TYPE, "_clusters_")
-# json_file_path <- write_list_to_json(clusters, output_name=output_name)
+output_name <- paste0(TASK_TYPE, "_levenshtein_clusters_")
+# output_name <- paste0(TASK_TYPE, "_clusters_")
+json_file_path <- write_list_to_json(
+  clusters,
+  output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
+  output_name = output_name)
 
-# 6️⃣ 分析 cluster 的 JSON 檔案
-json_file_path <- "output/R_output/json_output/PRACTICAL_clusters_202503060607.json"
-analyze_clusters_from_json(json_file_path, TASK_TYPE=TASK_TYPE)
+# # 6️⃣ 分析 cluster 的 JSON 檔案
+# json_file_path <- "output/R_output/json_output/CREATIVE_clusters_202503061509.json"
+# # json_file_path <- "output/R_output/json_output/PRACTICAL_clusters_202503061020.json"
+# analyze_clusters_from_json(
+#     json_file_path,
+#     TASK_TYPE=TASK_TYPE,
+#     representative_docs=representative_docs
+# )
+
+# # 【Unused】 繪製並存儲 K-Means 分群結果
+# plot_kmeans_clusters(sim_matrix, kmeans_results, TASK_TYPE)

@@ -51,6 +51,9 @@ plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/t
     # 確保 top_n 不超過可用的詞數
     top_n <- min(top_n, nrow(term_freq_df))
 
+    # 選取前 top_n 個高頻詞
+    top_terms <- term_freq_df$term[1:top_n]
+
     # 繪製前 top_n 個高頻詞的長條圖
     p <- ggplot(term_freq_df[1:top_n,], aes(x = reorder(term, -freq), y = freq)) +
         geom_bar(stat = "identity", fill = "steelblue") +
@@ -61,8 +64,11 @@ plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/t
 
     # 匯出圖檔
     ggsave(output_path, plot = p, width = 8, height = 6, dpi = 300)
-    # print(p)  # 顯示圖表
+
+    # 回傳 top_n 文字 vector
+    return(top_terms)
 }
+
 # 使用範例：只繪製前 10 個最高頻詞
 top_n <- 10
 output_path <- paste0("output/viz/term_count_barplot/", TASK_TYPE, "_top_", top_n, "_terms_", datetime, ".png")

@@ -2,6 +2,7 @@ source("lib/csv_reader.R")
 source("lib/matrix_visualization.R")
 source("lib/cluster_to_json_writer.R")
 source("lib/term_document_matrix_generator.R")
+# Load necessary libraries
 library(writexl)
 library(glue)
 
@@ -112,15 +113,16 @@ process_user_clusters <- function(
 
         # 存入 list（每個 cluster 一組數據）
         filtered_data_list[[i]] <- filtered_data
+        # print(filtered_data)
 
         # 顯示進度
-        cat("完成處理 Cluster", i, "- user 數:", length(user_vector), "\n")
+        # cat("完成處理 Cluster", i, "- user 數:", length(user_vector), "\n")
     }
 
     return(filtered_data_list)
 }
 
-analyze_clusters_from_json <- function(json_file_path, TASK_TYPE) {
+analyze_clusters_from_json <- function(json_file_path, TASK_TYPE, representative_docs=FALSE) {
   # 設定 JSON 檔案路徑
   filtered_dfs <- process_user_clusters(json_path=json_file_path)
   # 進行文本分析
@@ -128,11 +130,11 @@ analyze_clusters_from_json <- function(json_file_path, TASK_TYPE) {
   for (i in seq_along(filtered_dfs)) {
     cluster_i <- i
     df <- filtered_dfs[[i]] # 取得第 i 個 cluster 的數據
-    final_submission <- as.vector(df$final_submission)
+    final_submissions <- as.vector(df$final_submission)
     cat("Cluster", cluster_i, ":\n")
 
     # Create a text corpus from nlp_functions.R
-    corpus <- create_corpus(texts_vector = final_submission, POS = "ADJ")
+    corpus <- create_corpus(texts_vector = final_submissions, POS = "ADJ")
     cat("Corpus Size:", length(corpus), "\n")
     # Generate the term-document matrix
     tdm_matrix <- generate_tdm(corpus)
@@ -150,7 +152,41 @@ analyze_clusters_from_json <- function(json_file_path, TASK_TYPE) {
     # 繪製前 10 個最高頻詞 bar plot
     top_n <- 10
     output_path <- glue("{dir_path_barplot}/cluster_{cluster_i}_top_{top_n}_terms.png")
-    plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
+    top_terms <- plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
+
+        # ✅ 若有提供代表性文件，則比對其文本是否包含 `top_terms`
+    if (!is.null(representative_docs)) {
+      doc <- representative_docs[[i]]  # 取得當前 Cluster 的代表性文件 ID
+      cat("🔹 Representative Document for Cluster", cluster_i, ":", doc, "\n")
+
+      # ✅ 動態篩選 `user_id` 對應的文本
+      filter_conditions <- list(
+        paste0("user_id == '", doc, "'")
+      )
+
+      # ✅ 使用 `csv_reader()` 取得該用戶的文本內容
+      filtered_data <- csv_reader(
+        show_col_types = FALSE,
+        filter_conditions = filter_conditions
+      )
+
+      if (nrow(filtered_data) > 0) {
+        text <- filtered_data$final_submission
+        # 確保 `text` 是字符向量
+        text_words <- unlist(strsplit(tolower(text), "\\W+"))
+
+        # 比對 `top_terms` 是否出現在 `text_words`
+        matched_terms <- intersect(top_terms, text_words)
+
+        if (length(matched_terms) > 0) {
+          cat("✅ Representative Document contains these top terms:", matched_terms, "\n")
+        } else {
+          cat("❌ No top terms found in Representative Document.\n")
+        }
+      } else {
+        cat("⚠️ No matching document found for user_id:", doc, "\n")
+      }
+    }
 
     # 繪製前 50 個最高頻詞 word cloud
     top_n <- 50

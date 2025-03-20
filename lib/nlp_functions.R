@@ -52,7 +52,7 @@ create_corpus <- function(
 
     # 選擇特定詞性
     if (!POS %in% c("NOUN", "VERB", "ADJ")) {
-      cat("未知的 POS 選擇，請使用 '名詞', '動詞' 或 '形容詞'")
+      cat("未知的 POS 選擇，請使用 'NOUN', 'VERB', 'ADJ'")
       return(text)
     } else {
       filtered_words <- annotated$lemma[annotated$upos == POS]
@@ -166,8 +166,15 @@ remove_selected_punctuation <- function(text) {
 }
 
 # Tokenization methods
-tokenize <- function(text, method = "word") {
-  # text <- remove_selected_punctuation(text)
+tokenize <- function(
+  text,
+  method = "word",
+  remove_punc = FALSE,
+  remove_sw = FALSE
+) {
+  if (remove_punc) {
+    text <- remove_selected_punctuation(text)
+  }
   text <- tolower(text)
 
   if (method == "word") {
@@ -182,6 +189,10 @@ tokenize <- function(text, method = "word") {
     tokens <- if (length(words) > 2) unlist(lapply(1:(length(words) - 2), function(i) paste(words[i], words[i+1], words[i+2]))) else character(0)
   }else {
     stop("Unknown tokenization method")
+  }
+
+  if (remove_sw) {
+    tokens <- remove_stopwords(tokens)
   }
   return(tokens)
 }

@@ -47,8 +47,16 @@ jaccard_similarity <- function(text1, text2, ngram = NULL) {
 
 # Cosine Similarity
 cosine_similarity <- function(text1, text2, tokenize_method = "word") {
-  freq1 <- table(tokenize(text1, method = tokenize_method))
-  freq2 <- table(tokenize(text2, method = tokenize_method))
+  freq1 <- table(tokenize(
+    text1,
+    method = tokenize_method,
+    remove_punc = TRUE
+  ))
+  freq2 <- table(tokenize(
+    text2,
+    method = tokenize_method,
+    remove_punc = TRUE
+  ))
   # cat("Frequency 1:", freq1, "\n")
   # cat("Frequency 2:", freq2, "\n")
 
@@ -81,13 +89,29 @@ cosine_similarity <- function(text1, text2, tokenize_method = "word") {
 }
 
 # Levenshtein Distance
-levenshtein_distance <- function(text1, text2) {
-  return(stringdist::stringdist(text1, text2, method = "lv"))
+levenshtein_distance <- function(text1, text2, tokenized=FALSE) {
+  if (tokenized) {
+    # Tokenize text1 and text2
+    tokens1 <- tokenize(text1, remove_punc=TRUE, remove_sw=TRUE)
+    tokens2 <- tokenize(text2, remove_punc=TRUE, remove_sw=TRUE)
+
+    # 轉換 tokens 為單一字符串，並以空格連接
+    tokenized_text1 <- paste(tokens1, collapse = " ")
+    tokenized_text2 <- paste(tokens2, collapse = " ")
+
+    # 計算 Levenshtein Distance
+    distance <- stringdist::stringdist(tokenized_text1, tokenized_text2, method = "lv")
+  }
+  else {
+    distance <- stringdist::stringdist(text1, text2, method = "lv")
+  }
+  return(distance)
 }
 
-normalized_levenshtein_distance <- function(text1, text2) {
+normalized_levenshtein_distance <- function(text1, text2, tokenized=FALSE) {
   max_len <- max(nchar(text1), nchar(text2))
-  return(levenshtein_distance(text1, text2) / max_len)
+  if (max_len == 0) return(0)
+  return(levenshtein_distance(text1, text2, tokenized = tokenized) / max_len)
 }
 
 # Hamming Distance
@@ -159,8 +183,16 @@ fingerprints <- function(k_grams, w) {
 }
 
 winnowing <- function(doc1, doc2, k = 1, w = 2) {
-  tokens1 <- tokenize(doc1)
-  tokens2 <- tokenize(doc2)
+  tokens1 <- tokenize(
+    text = doc1,
+    remove_punc = TRUE,
+    remove_sw = TRUE
+  )
+  tokens2 <- tokenize(
+    text = doc2,
+    remove_punc = TRUE,
+    remove_sw = TRUE
+  )
 
   hashes1 <- hash_tokens(tokens1)
   hashes2 <- hash_tokens(tokens2)
@@ -199,5 +231,5 @@ text2 = "I love to read books on Saturday and Sunday."
 # cat("Euclidean Similarity:", euclidean_similarity(text1, text2), "\n")
 # cat("Overlap Coefficient:", overlap_coefficient(text1, text2), "\n")
 
-# text1, text2 must in same length
+# # text1, text2 must in same length
 # cat("Hamming Similarity:", 1 - normalized_hamming_distance(text1, text2), "\n")

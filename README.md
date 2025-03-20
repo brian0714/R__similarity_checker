@@ -22,6 +22,7 @@ Stores execution results such as:
 A front-end interface for visualizing clustering results from `cluster.json`. It includes:
 - HTML, CSS, and JavaScript for rendering interactive charts
 - A simple NLP-based interactive user experience (e.g., n-gram selection)
+- To open the web; Type `python3 -m http.server 8000` in the command to run the html page on web browser
 
 ### 📂 `deploy_project`
 Contains the final version of the web visualization for deployment.
