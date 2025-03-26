@@ -41,6 +41,8 @@ compute_cosine_similarity_matrix <- function(tfidf_matrix) {
 }
 
 kmeans_clustering <- function(sim_matrix, optimal_k, dim_reduce = 5) {
+  sim_matrix <- read_similarity_matrix(file_path=sim_matrix)
+
   # 確保 `sim_matrix` 使用的是 `user_id`
   user_ids <- rownames(sim_matrix)
 
@@ -128,7 +130,10 @@ plot_kmeans_clusters <- function(sim_matrix, kmeans_result, TASK_TYPE, output_di
 }
 
 # test
-TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
+SIM_METHOD <- "levenshtein"  # "winnowing" or "cosine" or "levenshtein"
+
+datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
 # 1️⃣ 計算 TF-IDF 矩陣
 # tfidf_matrix <- precompute_tfidf(TASK_TYPE)
@@ -141,10 +146,11 @@ TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 # cat("Cosine Similarity Matrix Size:", dim(sim_matrix)[1], "x", dim(sim_matrix)[2], "\n")
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/levenshtein_similarity_checker_202502281040.csv"
-sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/levenshtein_similarity_checker_202502281037.csv"
-# output_path <- "output/viz/sse_curve/new1_cosine_sse_elbow_plot.png"
-output_path <- "output/viz/sse_curve/new1_levenshtein_sse_elbow_plot.png"
+sim_matrix <- glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/levenshtein_similarity_checker_202502281040.csv")
+# sim_matrix <- glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/levenshtein_similarity_checker_202502281037.csv")
+# sim_matrix <- glue("output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_checker_202502281048.csv")
+
+output_path <- glue("output/viz/sse_curve/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
 optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
 cat("Optimal k (elbow point):", optimal_k, "\n")
 
@@ -154,8 +160,9 @@ clusters <- kmeans_results$cluster_groups
 representative_docs <- kmeans_results$representative_docs
 
 # 5️⃣ 將 cluster 寫入 JSON
-output_name <- paste0(TASK_TYPE, "_levenshtein_clusters_")
+output_name <- glue("{TASK_TYPE}_{SIM_METHOD}_clusters_")
 # output_name <- paste0(TASK_TYPE, "_clusters_")
+
 json_file_path <- write_list_to_json(
   clusters,
   output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
@@ -163,12 +170,12 @@ json_file_path <- write_list_to_json(
 
 # # 6️⃣ 分析 cluster 的 JSON 檔案
 # json_file_path <- "output/R_output/json_output/CREATIVE_clusters_202503061509.json"
-# # json_file_path <- "output/R_output/json_output/PRACTICAL_clusters_202503061020.json"
-# analyze_clusters_from_json(
-#     json_file_path,
-#     TASK_TYPE=TASK_TYPE,
-#     representative_docs=representative_docs
-# )
+# json_file_path <- "output/R_output/json_output/PRACTICAL_clusters_202503061020.json"
+analyze_clusters_from_json(
+    json_file_path,
+    TASK_TYPE=TASK_TYPE,
+    representative_docs=representative_docs
+)
 
 # # 【Unused】 繪製並存儲 K-Means 分群結果
 # plot_kmeans_clusters(sim_matrix, kmeans_results, TASK_TYPE)

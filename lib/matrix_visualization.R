@@ -10,6 +10,38 @@ library(cluster)
 library(ggplot2)
 # library(factoextra)
 
+# # 讀取 CSV 或使用現有的相似度矩陣
+read_similarity_matrix <- function(file_path) {
+  # 如果輸入是檔案路徑
+  if (is.character(file_path)) {
+    # 讀取 CSV 檔案
+    matrix_data <- read.csv(file_path, stringsAsFactors = FALSE)
+
+    # 將非 user_id 欄位轉成數值
+    matrix_data_clean <- apply(matrix_data[,-1], 2, as.numeric)
+    matrix_data_clean <- as.matrix(matrix_data_clean)
+
+    # 設定列與欄名稱
+    rownames(matrix_data_clean) <- matrix_data$user_id
+    colnames(matrix_data_clean) <- matrix_data$user_id
+
+    # 處理缺失或無效值
+    if (any(is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean))) {
+      matrix_data_clean[is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean)] <- 0
+      cat("Warning in reading matrix: Missing or invalid values detected and replaced with 0.\n")
+    }
+
+  } else if (is.matrix(file_path)) {
+    # 直接使用提供的數值矩陣
+    matrix_data_clean <- file_path
+  } else {
+    stop("Error: file_path must be either a file path (character) or a matrix.")
+  }
+
+  return(matrix_data_clean)
+}
+
+
 # Heatmap plot function
 plot_similarity_heatmap <- function(file_path = NULL, df = NULL, output_path) {
   if (!is.null(file_path)) {
@@ -61,13 +93,8 @@ plot_dendrogram <- function(file_path, method = "average", output_path) {
 
 # 計算 Silhouette score 並繪製最佳 k 值的圖表
 calculate_silhouette_scores <- function(file_path, output_path, method = "average", max_k = 10) {
-    # Load the matrix from CSV if file_path is provided
-    matrix_data <- read.csv(file_path)
-
-    # 移除 user_id 欄位，並將其轉換為矩陣格式
-    matrix_data_clean <- as.matrix(matrix_data[,-1])
-    rownames(matrix_data_clean) <- matrix_data$user_id
-    colnames(matrix_data_clean) <- matrix_data$user_id
+    # 讀取 CSV 或使用現有的相似度矩陣
+    matrix_data_clean <- read_similarity_matrix(file_path)
 
     # 計算距離矩陣
     # different from dist(matrix_data_clean) as it calculates the Euclidean distance
@@ -101,26 +128,7 @@ calculate_silhouette_scores <- function(file_path, output_path, method = "averag
 # Elbow method function for determining optimal k (適用於相似度矩陣)
 elbow_method <- function(file_path, output_path, max_k = 10) {
   # 讀取 CSV 或使用現有的相似度矩陣
-  if (is.character(file_path)) {
-    # 讀取 CSV 檔案
-    matrix_data <- read.csv(file_path)
-
-    # 移除 user_id 欄位，轉換成數值矩陣
-    matrix_data_clean <- as.matrix(matrix_data[,-1])
-    rownames(matrix_data_clean) <- matrix_data$user_id
-    colnames(matrix_data_clean) <- matrix_data$user_id
-
-    # 檢查並處理缺失值或無效值
-    if (any(is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean))) {
-      matrix_data_clean[is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean)] <- 0
-      cat("Warning in elbow method: Missing or invalid values detected and replaced with 0.\n")
-    }
-  } else if (is.matrix(file_path)) {
-    # 直接使用提供的數值矩陣
-    matrix_data_clean <- file_path
-  } else {
-    stop("Error: file_path must be either a file path (character) or a matrix.")
-  }
+  matrix_data_clean <- read_similarity_matrix(file_path)
 
   # **轉換相似度為距離矩陣**
   distance_matrix <- as.dist(1 - matrix_data_clean)
@@ -147,6 +155,7 @@ elbow_method <- function(file_path, output_path, max_k = 10) {
   text(elbow_k, sse[elbow_k - 1], labels = paste("Elbow at k =", elbow_k), pos = 4, col = "red")
 
   dev.off()
+
   return(elbow_k)
 }
 

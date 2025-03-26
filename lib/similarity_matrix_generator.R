@@ -1,5 +1,6 @@
 # Load necessary libraries
 library(dplyr)
+library(glue)
 source("lib/csv_reader.R")
 source("lib/make_unique_ids.R")
 source("lib/similarity_methods.R")
@@ -43,20 +44,21 @@ compare_matrix_generator <- function(
 
   # Step 2: Prepare an empty list to store all similarity matrices
   similarities <- list(
-    "cosine_similarity" = list()
+    # "cosine_similarity" = list(),
     # "cosine_similarity_with_bigram" = list(),
     # "cosine_similarity_with_trigram" = list(),
     # "euclidean_similarity" = list(),
     # "jaccard_similarity" = list(),
     # "levenshtein_similarity" = list(),
     # "overlap_similarity" = list(),
-    # "winnowing_similarity" = list()
+    # "winnowing_similarity" = list(),
+    "winnowing_similarity_by_char" = list()
   )
 
   # Step 3: Calculate the similarity between each text and generate the corresponding matrix
   # 初始化所有相似度矩陣
     n <- length(final_submissions)
-    cosine_similarity_matrix <- matrix(NA, n, n)
+    # cosine_similarity_matrix <- matrix(NA, n, n)
     # cosine_similarity_with_bigram_matrix <- matrix(NA, n, n)
     # cosine_similarity_with_trigram_matrix <- matrix(NA, n, n)
     # euclidean_similarity_matrix <- matrix(NA, n, n)
@@ -64,13 +66,14 @@ compare_matrix_generator <- function(
     # levenshtein_similarity_matrix <- matrix(NA, n, n)
     # overlap_similarity_matrix <- matrix(NA, n, n)
     # winnowing_similarity_matrix <- matrix(NA, n, n)
+    winnowing_similarity_by_char_matrix <- matrix(NA, n, n)
 
     # 計算相似度並填入矩陣
     for (i in seq_along(final_submissions)) {
       for (j in seq_along(final_submissions)) {
         if (i != j) {
           # 計算不同的相似度
-          cosine_similarity_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j])
+          # cosine_similarity_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j])
           # cosine_similarity_with_bigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "bigram")
           # cosine_similarity_with_trigram_matrix[i, j] <- cosine_similarity(final_submissions[i], final_submissions[j], tokenize_method = "trigram")
           # euclidean_similarity_matrix[i, j] <- euclidean_similarity(final_submissions[i], final_submissions[j])
@@ -78,20 +81,22 @@ compare_matrix_generator <- function(
           # levenshtein_similarity_matrix[i, j] <- 1 - normalized_levenshtein_distance(final_submissions[i], final_submissions[j])
           # overlap_similarity_matrix[i, j] <- overlap_coefficient(final_submissions[i], final_submissions[j])
           # winnowing_similarity_matrix[i, j] <- winnowing(final_submissions[i], final_submissions[j], k = 3, w = 4)
+          winnowing_similarity_by_char_matrix[i, j] <- winnowing_by_char(final_submissions[i], final_submissions[j], k = 5)
         }
       }
     }
 
     # 將結果存入 similarities 列表中
     similarities <- list(
-      "cosine_similarity" = cosine_similarity_matrix
+      # "cosine_similarity" = cosine_similarity_matrix,
       # "cosine_similarity_with_bigram" = cosine_similarity_with_bigram_matrix,
       # "cosine_similarity_with_trigram" = cosine_similarity_with_trigram_matrix
       # "euclidean_similarity" = euclidean_similarity_matrix,
       # "jaccard_similarity" = jaccard_similarity_matrix,
       # "levenshtein_similarity" = levenshtein_similarity_matrix,
       # "overlap_similarity" = overlap_similarity_matrix,
-      # "winnowing_similarity" = winnowing_similarity_matrix
+      # "winnowing_similarity" = winnowing_similarity_matrix,
+      "winnowing_similarity_by_char" = winnowing_similarity_by_char_matrix
     )
 
   # Step 4: Write the similarity matrix to CSV
@@ -120,16 +125,17 @@ compare_matrix_generator <- function(
 
 # Test the function
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 
 # Define multiple filter conditions as strings
 filter_conditions <- list(
   # "use_ai == 1",
-  "task_type == 'PRACTICAL'" # "PRACTICAL" or "CREATIVE"
+  paste0("task_type == '", TASK_TYPE, "'")
 )
 
 # Call the function with the file path and filter conditions
 similarities <- compare_matrix_generator(
   input_file_path = file_path,
   filter_conditions = filter_conditions,
-  output_dir = "output/R_output/CSV_output/PRACTICAL_similarity_matrices"
+  output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices")
 )

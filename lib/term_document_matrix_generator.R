@@ -35,19 +35,29 @@ generate_term_freq_df <- function(tdm_matrix) {
 
 # Example: Set the input file path
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
-TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
-## Create a text corpus from nlp_functions.R
+# Create a text corpus from nlp_functions.R
 # corpus <- create_corpus(texts_vector = TASK_TYPE)
 # cat("Corpus Size:", length(corpus), "\n")
-## Generate the term-document matrix
+# # Generate the term-document matrix
 # tdm_matrix <- generate_tdm(corpus)
-## Generate the term frequency data frame
+# # Generate the term frequency data frame
 # term_freq_df <- generate_term_freq_df(tdm_matrix)
 
 # EDA: Plot a barplot of the top terms
-plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/term_count_barplot/top_10_terms_plot.png") {
+plot_top_terms <- function(
+    term_freq_df,
+    top_n = 10,
+    output_path = "output/viz/term_count_barplot/top_10_terms_plot.png",
+    remove_terms = c()
+) {
+    # 移除指定的詞（如果有）
+    if (length(remove_terms) > 0) {
+        term_freq_df <- term_freq_df[!term_freq_df$term %in% remove_terms, ]
+    }
+
     # 確保 top_n 不超過可用的詞數
     top_n <- min(top_n, nrow(term_freq_df))
 
@@ -69,9 +79,9 @@ plot_top_terms <- function(term_freq_df, top_n = 10, output_path = "output/viz/t
     return(top_terms)
 }
 
-# 使用範例：只繪製前 10 個最高頻詞
-top_n <- 10
-output_path <- paste0("output/viz/term_count_barplot/", TASK_TYPE, "_top_", top_n, "_terms_", datetime, ".png")
+# 使用範例：只繪製前 20 個最高頻詞
+# top_n <- 20
+# output_path <- paste0("output/viz/term_count_barplot/", TASK_TYPE, "_top_", top_n, "_terms_", datetime, ".png")
 # plot_top_terms(term_freq_df, top_n = top_n, output_path = output_path)
 
 # EDA: Plot a word cloud

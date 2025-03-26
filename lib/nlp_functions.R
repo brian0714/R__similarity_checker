@@ -41,24 +41,34 @@ create_corpus <- function(
 
   # 使用 `udpipe` 進行 POS 標註
   filter_pos <- function(text, POS) {
-    if (POS == FALSE) return(text)  # 不過濾，直接回傳原文本
+    if (identical(POS, FALSE)) return(text)  # 不過濾，直接回傳原文本
 
-    # 選擇語言模型 (English-only so far)
-    ud_model <- udpipe_load_model("model/english-ewt-ud-2.5-191206.udpipe")
+    # 允許的 POS 類型
+    allowed_pos <- c("NOUN", "VERB", "ADJ")
 
-    # 進行詞性標註
+    # 檢查 POS 是不是 character 或 vector
+    if (!is.character(POS)) {
+      cat("POS 必須是字串或字串向量。\n")
+      return(text)
+    }
+
+    # 檢查是否有非法 POS 類型
+    if (any(!POS %in% allowed_pos)) {
+      cat("未知的 POS 選擇，請使用 'NOUN', 'VERB', 'ADJ'\n")
+      return(text)
+    }
+
+    # 載入語言模型
+    ud_model <- udpipe_load_model("model/POS_model/english-ewt-ud-2.5-191206.udpipe")
+
+    # 執行詞性標註
     annotated <- udpipe_annotate(ud_model, x = text)
     annotated <- as.data.frame(annotated)
 
-    # 選擇特定詞性
-    if (!POS %in% c("NOUN", "VERB", "ADJ")) {
-      cat("未知的 POS 選擇，請使用 'NOUN', 'VERB', 'ADJ'")
-      return(text)
-    } else {
-      filtered_words <- annotated$lemma[annotated$upos == POS]
-    }
+    # 根據 POS 過濾 lemma
+    filtered_words <- annotated$lemma[annotated$upos %in% POS]
 
-    # 將篩選後的詞彙組合成文本
+    # 組合成單一文本
     return(paste(filtered_words, collapse = " "))
   }
 

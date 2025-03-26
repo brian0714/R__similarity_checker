@@ -11,7 +11,8 @@ const practicalClusterList = document.getElementById('practical-cluster-list');
 const content = document.getElementById('content');
 
 // JSON Paths
-const creativeJsonPath = "data/json/CREATIVE_clusters_202501230455.json";
+// const creativeJsonPath = "data/json/CREATIVE_clusters_202501230455.json";
+const creativeJsonPath = "data/json/CREATIVE_levenshtein_clusters_202503270411.json202503270411.json";
 const practicalJsonPath = "data/json/PRACTICAL_clusters_202501230447.json";
 const csvPath = "../data/text_data/extracted_behavior_pattern_data.csv";
 
@@ -155,7 +156,7 @@ function showCluster(cluster, clusterIndex, dataset) {
             const n = parseInt(selectedValue, 10);
             clusterState.nGramValue = n; // 保存 n 的值
             clusterState.nGramDict = calculateNGramFrequency(documents, n);
-            console.log(`N-Gram Frequencies for Gram = ${n}:`, clusterState.nGramDict);
+            console.log(`Cluster ${clusterIndex} N-Gram Frequencies for Gram = ${n}:`, clusterState.nGramDict);
         });
     }
 
