@@ -1,6 +1,7 @@
 library(dplyr)
 library(purrr)
 library(stringr)
+library(glue)
 source("lib/cluster_to_json_writer.R")
 
 # Helper function: calculate Jaccard index
@@ -12,7 +13,7 @@ jaccard_index <- function(set1, set2) {
 }
 
 # Main function
-compare_clusterings <- function(cluster1, cluster2, cluster_method_names = NULL, output_path = "cluster_similarity.csv") {
+compare_clusterings <- function(cluster1, cluster2, cluster_method_names = NULL, output_dir = "output/R_output/CSV_output") {
   # read json file if provided
   if (is.character(cluster1) && file.exists(cluster1)) {
     cluster1 <- read_json_as_clusters(cluster1)
@@ -55,6 +56,11 @@ compare_clusterings <- function(cluster1, cluster2, cluster_method_names = NULL,
   )
 
   # Save matrix as CSV
+  if (is.null(cluster_method_names) || length(cluster_method_names) != 2) {
+    output_path <- glue("{output_dir}/C1_C2_compared_similarity_matrix.csv")
+  } else {
+    output_path <- glue("{output_dir}/{row_prefix}_{col_prefix}_compared_similarity_matrix.csv")
+  }
   write.csv(similarity_matrix, file = output_path, row.names = TRUE)
 
   # Return as list
@@ -68,11 +74,13 @@ compare_clusterings <- function(cluster1, cluster2, cluster_method_names = NULL,
 
 
 # test
+TASK_TYPE <- "PRACTICAL"
+
 result <- compare_clusterings(
     cluster1 = "output/R_output/json_output/PRACTICAL_clusters/PRACTICAL_cosine_clusters_202504101352.json",
     cluster2 = "output/R_output/json_output/PRACTICAL_clusters/PRACTICAL_jaccard_clusters_202504101418.json",
     cluster_method_names = c("cosine", "jaccard"),
-    output_path = "similarity_result.csv")
+    output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_cluster_compare_result"))
 
 # 查看回傳的結果
 print(result$similarity_matrix)
