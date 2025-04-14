@@ -125,7 +125,7 @@ compare_matrix_generator <- function(
 
 # Test the function
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
-TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 
 # Define multiple filter conditions as strings
 filter_conditions <- list(

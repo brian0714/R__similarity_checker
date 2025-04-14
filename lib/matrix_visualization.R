@@ -3,14 +3,16 @@
 # install.packages("factoextra")
 
 source("lib/csv_reader.R")
+source("lib/cluster_to_json_writer.R")
 # Load necessary libraries
 library(pheatmap)
 library(dendextend)
 library(cluster)
 library(ggplot2)
+library(glue)
 # library(factoextra)
 
-# # 讀取 CSV 或使用現有的相似度矩陣
+# 讀取 CSV 或使用現有的相似度矩陣
 read_similarity_matrix <- function(file_path) {
   # 如果輸入是檔案路徑
   if (is.character(file_path)) {
@@ -40,7 +42,6 @@ read_similarity_matrix <- function(file_path) {
 
   return(matrix_data_clean)
 }
-
 
 # Heatmap plot function
 plot_similarity_heatmap <- function(file_path = NULL, df = NULL, output_path) {
@@ -126,30 +127,33 @@ calculate_silhouette_scores <- function(file_path, output_path, method = "averag
 }
 
 # Elbow method function for determining optimal k (適用於相似度矩陣)
-elbow_method <- function(file_path, output_path, max_k = 10) {
+elbow_method <- function(file_path, output_path, max_k = 10, seed = 123) {
+  # 設定隨機種子，確保每次結果一致
+  set.seed(seed)
+
   # 讀取 CSV 或使用現有的相似度矩陣
   matrix_data_clean <- read_similarity_matrix(file_path)
 
-  # **轉換相似度為距離矩陣**
+  # 轉換相似度為距離矩陣
   distance_matrix <- as.dist(1 - matrix_data_clean)
 
-  # **使用 MDS (多維尺度分析) 轉換為特徵矩陣 (n x d)**
-  feature_matrix <- cmdscale(distance_matrix, k = 5)  # ✅ 降維到 5 維
+  # 使用 MDS 降維
+  feature_matrix <- cmdscale(distance_matrix, k = 5)
 
-  # 計算每個 k 的 SSE (Sum of Squared Errors)
+  # 計算 SSE
   sse <- numeric(max_k - 1)
   for (k in 2:max_k) {
     kmeans_result <- kmeans(feature_matrix, centers = k, nstart = 25)
-    sse[k - 1] <- kmeans_result$tot.withinss  # SSE
+    sse[k - 1] <- kmeans_result$tot.withinss
   }
 
-  # 繪製 Elbow curve
+  # 繪圖
   png(output_path, width = 800, height = 600)
   plot(2:max_k, sse, type = "b", col = "blue", pch = 4,
        xlab = "k", ylab = "SSE (Sum of Squared Errors)",
-       main = paste("Elbow Method for Optimal k ( k range in max ", max_k, ")"))
+       main = paste("Elbow Method for Optimal k (k range: 2 to", max_k, ")"))
 
-  # 找到 elbow point
+  # 找 elbow point
   elbow_k <- which.min(diff(diff(sse))) + 2
   points(elbow_k, sse[elbow_k - 1], col = "red", pch = 19, cex = 1.5)
   text(elbow_k, sse[elbow_k - 1], labels = paste("Elbow at k =", elbow_k), pos = 4, col = "red")
@@ -161,79 +165,67 @@ elbow_method <- function(file_path, output_path, max_k = 10) {
 
 # Dendrogram plot function with cutree visualization
 plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k = 4, output_path) {
-  # Load the matrix from CSV if file_path is provided
+  # 讀取資料
   matrix_data <- read.csv(file_path)
-
-  # 將資料轉換為矩陣並移除 user_id 欄位
   matrix_data_clean <- as.matrix(matrix_data[,-1])
   rownames(matrix_data_clean) <- matrix_data$user_id
   colnames(matrix_data_clean) <- matrix_data$user_id
 
-  # 計算距離矩陣
   dist_matrix <- dist(matrix_data_clean)
-
-  # 使用指定的 linkage 方法進行階層式聚類
   hc <- hclust(dist_matrix, method = method)
-
-  # 將聚類結果轉換為樹狀圖物件
   dend <- as.dendrogram(hc)
-
-  # 使用 cutree 將樹狀圖切割成 k 個群組
   clusters <- cutree(hc, k = k)
 
-  # 將每個群集的成員存儲在列表中
-  output_clusters <- lapply(1:k, function(i) {
-    names(clusters[clusters == i])
+  # 取得 dendrogram 左到右的順序
+  ordered_ids <- rownames(matrix_data_clean)[hc$order]
+
+  # 將每群內的 ID 按照圖中的順序排序
+  cluster_list <- lapply(1:k, function(i) {
+    ids <- names(clusters[clusters == i])
+    ids[order(match(ids, ordered_ids))]
   })
 
-  # 顯示每個群集的成員
-  cat("Cluster members:\n")
-  # cat("Cluster members:\n")
-  for (i in 1:k) {
-    # 列出每個群組的成員
-    cat("Cluster", i, "( size =", length(names(clusters[clusters == i])), "):", names(clusters[clusters == i]), "\n")
+  # 根據每群在圖中最早出現的 ID 位置，決定整體順序
+  first_positions <- sapply(cluster_list, function(ids) {
+    min(match(ids, ordered_ids))
+  })
 
-    # 初始化一個向量來儲存文件的字數
+  # 重新排序整體 cluster list
+  cluster_list <- cluster_list[order(first_positions)]
+
+  # 顯示每個群組及其平均字數
+  cat("Cluster members (ordered by dendrogram):\n")
+  for (i in seq_along(cluster_list)) {
+    members <- cluster_list[[i]]
+    cat("Cluster", i, "( size =", length(members), "):", members, "\n")
+
     document_length_list <- numeric(0)
-
-    # 遍歷該群組內的所有成員
-    for (j in names(clusters[clusters == i])) {
-      # 定義過濾條件
+    for (j in members) {
       filter_conditions <- list(
         paste0("user_id == ", j),
         paste0("task_type == '", task_type, "'")
       )
-
-      # 根據過濾條件篩選文件
       row <- csv_reader(show_col_types = FALSE, filter_conditions = filter_conditions)
       submission <- as.character(row$final_submission)
-
-      # 計算文件的字數並添加到 document_length_list
       document_length_list <- c(document_length_list, length(unlist(strsplit(submission, " "))))
     }
 
-    # 計算該群組的平均字數
     average_word_size <- mean(document_length_list)
     cat("Cluster", i, "average word size:", average_word_size, "\n")
-
   }
 
-  # 繪製樹狀圖並標示分群結果
+  # 繪圖
   png(output_path, width = 800, height = 600)
   plot(dend, main = paste("Dendrogram using", method, "linkage with", k, "clusters"))
-
-  # 在樹狀圖上顯示切割結果
   rect.hclust(hc, k = k, border = "red")
-
   dev.off()
 
-  # 回傳集群列表
-  return(output_clusters)
+  return(cluster_list)
 }
 
 # Example usage
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 # Case 1: Using file_path
-# file_path <- "output/R_output/CSV_output/practical_cosine_similarity_checker_202502200503.csv"
 file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_similarity_checker_202502280632.csv"
 
 # 範例使用，繪製相似度熱度圖
@@ -256,14 +248,23 @@ file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_sim
 
 # 範例使用，計算 Elbow method 並繪製最佳 k 值的圖表
 # output_path <- "output/viz/sse_curve/winnowing_sse_elbow_plot.png"
-output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
+# output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
 # optimal_k <- elbow_method(file_path, output_path, max_k = 10)
 # cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 範例使用，繪製帶有切割結果的樹狀圖
 # output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
-output_path <- "output/viz/dendrogram/cosine_dendrogram_with_cut.png"
-# plot_dendrogram_with_cut(file_path, task_type = "CREATIVE", method = "average", k = optimal_k, output_path = output_path)
+output_path <- glue("output/viz/dendrogram/{TASK_TYPE}_cosine_dendrogram_with_cut.png")
+optimal_k <- 8
+# clusters <- plot_dendrogram_with_cut(file_path, task_type = TASK_TYPE, method = "average", k = optimal_k, output_path = output_path)
+
+# 將 cluster 寫入 JSON
+# output_name <- glue("{TASK_TYPE}_HC_cosine_clusters")
+# json_file_path <- write_list_to_json(
+#   clusters,
+#   output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
+#   output_name = output_name)
+
 
 # Case 2: Using df directly
 # Assuming df is a pre-loaded data frame with similar structure

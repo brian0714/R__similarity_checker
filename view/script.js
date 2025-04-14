@@ -12,7 +12,10 @@ const content = document.getElementById('content');
 
 // JSON Paths
 // const creativeJsonPath = "data/json/CREATIVE_clusters_202501230455.json";
-const creativeJsonPath = "data/json/CREATIVE_levenshtein_clusters_202503270411.json202503270411.json";
+// const creativeJsonPath = "data/json/CREATIVE_levenshtein_clusters_202503270411.json202503270411.json";
+// const creativeJsonPath = "data/json/CREATIVE_winnowing_by_char_clusters_202503270645.json202503270645.json";
+const creativeJsonPath = "data/json/CREATIVE_HC_cosine_clusters_202503271437.json";
+
 const practicalJsonPath = "data/json/PRACTICAL_clusters_202501230447.json";
 const csvPath = "../data/text_data/extracted_behavior_pattern_data.csv";
 

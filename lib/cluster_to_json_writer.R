@@ -5,18 +5,17 @@ library(glue)
 write_list_to_json <- function(data_list,
                             output_dir="output/R_output/json_output",
                             pretty = TRUE, # Whether to format the JSON output for readability
-                            output_name = "clusters_") {
+                            output_name = "clusters") {
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
   # 確保資料夾存在
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   # 定義 JSON 檔案路徑
   if (!grepl("\\.json$", output_name)) {  # 檢查 output_name 是否已經有 .json 結尾
-    output_name <- glue("{output_name}{datetime}.json")
-    json_file_path <- file.path(output_dir, paste0(output_name, datetime, ".json"))
-  } else {
-  json_file_path <- file.path(output_dir, output_name)
+    output_name <- glue("{output_name}_{datetime}.json")
   }
+  json_file_path <- file.path(output_dir, output_name)
+
 
   # Write the list to a JSON file
   write_json(data_list, json_file_path, pretty = pretty)

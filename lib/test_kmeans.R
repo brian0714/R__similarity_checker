@@ -6,7 +6,6 @@ source("lib/cluster_stat.R")
 library(ggplot2)
 library(glue)
 
-
 precompute_tfidf <- function(task_type) {
   # 建立 corpus
   result <- create_corpus(
@@ -130,8 +129,8 @@ plot_kmeans_clusters <- function(sim_matrix, kmeans_result, TASK_TYPE, output_di
 }
 
 # test
-TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
-SIM_METHOD <- "levenshtein"  # "winnowing" or "cosine" or "levenshtein"
+TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
+SIM_METHOD <- "jaccard"  # "jaccard" or "overlap" or "winnowing" or "winnowing_by_char" or "cosine" or "levenshtein"
 
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
@@ -146,11 +145,15 @@ datetime <- format(Sys.time(), "%Y%m%d%H%M")
 # cat("Cosine Similarity Matrix Size:", dim(sim_matrix)[1], "x", dim(sim_matrix)[2], "\n")
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-sim_matrix <- glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/levenshtein_similarity_checker_202502281040.csv")
-# sim_matrix <- glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/levenshtein_similarity_checker_202502281037.csv")
 # sim_matrix <- glue("output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_checker_202502281048.csv")
+# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_by_char_checker_202503270642.csv"
+# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/jaccard_similarity_checker_202502281040.csv"
+# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/overlap_similarity_checker_202502281040.csv"
+# sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/cosine_similarity_checker_202502281029.csv"
+# sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/levenshtein_similarity_checker_202502281037.csv"
+sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/jaccard_similarity_checker_202502281037.csv"
 
-output_path <- glue("output/viz/sse_curve/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
+output_path <- glue("output/viz/sse_curve/{TASK_TYPE}/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
 optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
 cat("Optimal k (elbow point):", optimal_k, "\n")
 
@@ -160,7 +163,7 @@ clusters <- kmeans_results$cluster_groups
 representative_docs <- kmeans_results$representative_docs
 
 # 5️⃣ 將 cluster 寫入 JSON
-output_name <- glue("{TASK_TYPE}_{SIM_METHOD}_clusters_")
+output_name <- glue("{TASK_TYPE}_{SIM_METHOD}_clusters")
 # output_name <- paste0(TASK_TYPE, "_clusters_")
 
 json_file_path <- write_list_to_json(

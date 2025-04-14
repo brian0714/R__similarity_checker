@@ -35,7 +35,7 @@ generate_term_freq_df <- function(tdm_matrix) {
 
 # Example: Set the input file path
 file_path <- 'data/text_data/extracted_behavior_pattern_data.csv'
-TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
 # Create a text corpus from nlp_functions.R
