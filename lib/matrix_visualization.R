@@ -224,9 +224,26 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
 }
 
 # Example usage
-TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
+SIM_METHOD <- "winnowing_by_char"  # "jaccard" or "overlap" or "winnowing" or "winnowing_by_char" or "cosine" or "levenshtein"
+
 # Case 1: Using file_path
-file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_similarity_checker_202502280632.csv"
+# CREATIVE
+# file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_similarity_checker_202502280632.csv"
+# file_path <- glue("output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_checker_202502281048.csv")
+# file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_by_char_checker_202503270642.csv"
+# file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/jaccard_similarity_checker_202502281040.csv"
+# file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/overlap_similarity_checker_202502281040.csv"
+# file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/levenshtein_similarity_checker_202502281040.csv"
+
+# PRACTICAL
+# file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/cosine_similarity_checker_202502281029.csv"
+# file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/levenshtein_similarity_checker_202502281037.csv"
+# file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/jaccard_similarity_checker_202502281037.csv"
+# file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/overlap_similarity_checker_202502281037.csv"
+# file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/winnowing_similarity_checker_202502281052.csv"
+file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/winnowing_by_char_similarity_checker_202503271559.csv"
+
 
 # 範例使用，繪製相似度熱度圖
 # output_path <- "output/viz/heatmap/winnowing_similarity_heatmap.png"
@@ -254,16 +271,22 @@ file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_sim
 
 # 範例使用，繪製帶有切割結果的樹狀圖
 # output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
-output_path <- glue("output/viz/dendrogram/{TASK_TYPE}_cosine_dendrogram_with_cut.png")
+output_path <- glue("output/viz/dendrogram/{TASK_TYPE}/{TASK_TYPE}_{SIM_METHOD}_dendrogram_with_cut.png")
 optimal_k <- 8
-# clusters <- plot_dendrogram_with_cut(file_path, task_type = TASK_TYPE, method = "average", k = optimal_k, output_path = output_path)
+clusters <- plot_dendrogram_with_cut(
+  file_path,
+  task_type = TASK_TYPE,
+  method = "average",
+  k = optimal_k,
+  output_path = output_path
+)
 
 # 將 cluster 寫入 JSON
-# output_name <- glue("{TASK_TYPE}_HC_cosine_clusters")
-# json_file_path <- write_list_to_json(
-#   clusters,
-#   output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
-#   output_name = output_name)
+output_name <- glue("{TASK_TYPE}_HC_{SIM_METHOD}_clusters")
+json_file_path <- write_list_to_json(
+  clusters,
+  output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/HC"),
+  output_name = output_name)
 
 
 # Case 2: Using df directly
