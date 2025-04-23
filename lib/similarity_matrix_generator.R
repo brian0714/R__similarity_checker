@@ -2,10 +2,10 @@
 library(dplyr)
 library(glue)
 source("lib/csv_reader.R")
+source("lib/rmd_data_loader.R")
 source("lib/make_unique_ids.R")
 source("lib/similarity_methods.R")
 source("lib/nlp_functions.R")
-source("lib/data_loader.R")
 source("lib/csv_writer.R")
 source("lib/matrix_visualization.R")
 
@@ -17,29 +17,48 @@ compare_matrix_generator <- function(
   ) {
   start_time <- Sys.time()
 
-  # Step 1: Read the CSV file and extract "user_id" and "final_submission"
-  df <- csv_reader(input_file_path, filter_conditions = filter_conditions)
-  user_ids <- df$user_id
-  final_submissions <- df$final_submission
+  # Step 1: Read the CSV file and extract ID and text columns based on available format
+  # Check if the input file exists
+  if (!file.exists(input_file_path)) {
+    stop("❌ Error: Input file does not exist.")
+  }
+  # Read the CSV file
+  temp_df <- read.csv(input_file_path, stringsAsFactors = FALSE)
+
+  if (all(c("user_id", "final_submission") %in% names(temp_df))) {
+    df <- csv_reader(input_file_path, filter_conditions = filter_conditions)
+    doc_ids <- df$user_id
+    final_submissions <- df$final_submission
+    cat("🗂 Format detected: user_id + final_submission\n")
+  } else if (all(c("doc_id", "text") %in% names(temp_df))) {
+    df <- load_doc_table(csv_path)
+    doc_ids <- df$doc_id
+    final_submissions <- df$text
+    cat("🗂 Format detected: doc_id + text\n")
+  } else {
+    stop("❌ Error: CSV must contain either ('user_id', 'final_submission') or ('doc_id', 'text') columns.")
+  }
+
   cat("The size of the df:", nrow(df), "\n")
 
-  # Step 1-2: Make user_ids unique by adding suffixes to duplicates
-  result <- make_unique_ids(user_ids)
+
+  # Step 1-2: Make doc_ids unique by adding suffixes to duplicates
+  result <- make_unique_ids(doc_ids)
   # Get unique_ids and duplicate_ids separately
-  unique_user_ids_with_suffices <- result$unique_ids
-  duplicate_user_ids <- result$duplicate_ids
+  unique_doc_ids_with_suffices <- result$unique_ids
+  duplicate_doc_ids <- result$duplicate_ids
 
-  # Filter out duplicate user_ids from user_ids and final_submissions
-  non_duplicate_indices <- !(user_ids %in% duplicate_user_ids)
-  unique_user_ids <- user_ids[non_duplicate_indices]
+  # Filter out duplicate doc_ids from doc_ids and final_submissions
+  non_duplicate_indices <- !(doc_ids %in% duplicate_doc_ids)
+  unique_doc_ids <- doc_ids[non_duplicate_indices]
   final_submissions <- final_submissions[non_duplicate_indices]
-  cat("Removed duplicates. Remaining size of the df:", length(unique_user_ids), "\n")
+  cat("Removed duplicates. Remaining size of the df:", length(unique_doc_ids), "\n")
 
-  # Check if unique_user_ids has duplicates after processing
-  if (any(duplicated(unique_user_ids))) {
-    stop("Error: Duplicate user_ids remain after processing.")
+  # Check if unique_doc_ids has duplicates after processing
+  if (any(duplicated(unique_doc_ids))) {
+    stop("Error: Duplicate doc_ids remain after processing.")
   } else {
-    cat("Unique user_ids after processing:\n", unique_user_ids, "\n")
+    cat("Unique doc_ids after processing:\n", unique_doc_ids, "\n")
   }
 
   # Step 2: Prepare an empty list to store all similarity matrices
@@ -100,8 +119,13 @@ compare_matrix_generator <- function(
     )
 
   # Step 4: Write the similarity matrix to CSV
+  # Check if the output directory exists, if not, create it
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+    cat("📁 Created output directory:", output_dir, "\n")
+  }
   dfs <- csv_writer(
-    unique_user_ids,
+    unique_doc_ids,
     similarities,
     output_dir
   )
@@ -134,8 +158,8 @@ filter_conditions <- list(
 )
 
 # Call the function with the file path and filter conditions
-similarities <- compare_matrix_generator(
-  input_file_path = file_path,
-  filter_conditions = filter_conditions,
-  output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices")
-)
+# similarities <- compare_matrix_generator(
+#   input_file_path = file_path,
+#   filter_conditions = filter_conditions,
+#   output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices")
+# )
