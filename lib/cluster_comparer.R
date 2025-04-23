@@ -115,11 +115,22 @@ get_true_max_cluster_count <- function(clusterings) {
 }
 
 # 多個 clusterings 全列出對應 + threshold 過濾
-generate_all_cluster_alignments <- function(cluster_paths,
+generate_all_cluster_alignments <- function(cluster_paths = NULL,
+                                            clusterings = NULL,
                                             threshold = 0.3,
-                                            output_dir = "output/R_output/CSV_output/cluster_compare_result") {
+                                            output_dir = NULL) {
   # 載入所有 clustering 結果
-  clusterings <- load_all_clusterings(cluster_paths)
+  if (is.null(clusterings)) {
+    if (is.null(cluster_paths)) {
+      stop("Please provide either cluster_paths or clusterings.")
+    } else {
+      clusterings <- load_all_clusterings(cluster_paths)
+    }
+  } else {
+    if (!is.null(cluster_paths)) {
+      warning("Both cluster_paths and clusterings provided. Using clusterings.")
+    }
+  }
   method_names <- names(clusterings)
   all_matches <- list()
 
@@ -160,10 +171,12 @@ generate_all_cluster_alignments <- function(cluster_paths,
   result_df <- bind_rows(all_matches)
 
   # 將結果寫入 CSV 檔案
-  datetime <- format(Sys.time(), "%Y%m%d%H%M")
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  output_path <- glue("{output_dir}/cluster_alignment_full_{datetime}.csv")
-  write.csv(result_df, file = output_path, row.names = FALSE)
+  if (!is.null(output_dir)) {
+    datetime <- format(Sys.time(), "%Y%m%d%H%M")
+    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+    output_path <- glue("{output_dir}/cluster_alignment_full_{datetime}.csv")
+    write.csv(result_df, file = output_path, row.names = FALSE)
+  }
 
   return(result_df)
 }
@@ -211,7 +224,18 @@ plot_jaccard_distribution <- function(alignment_df, threshold = 0.3, save_path =
 }
 
 # 重新整理穩定的 cluster 結果
-reshape_stable_matrix <- function(stable_clusters_df, clusterings, output_path = NULL) {
+reshape_stable_matrix <- function(clusterings, stable_clusters_df = NULL, output_path = NULL) {
+  if (is.null(stable_clusters_df)) {
+    # 執行並指定 threshold
+    result_df <- generate_all_cluster_alignments(
+      clusterings = clusterings,
+      threshold = 0,
+    )
+
+    # 篩選出 Jaccard_Score >= 0.3 的穩定 cluster
+    stable_clusters_df <- get_stable_clusters(result_df, threshold = 0.3)
+  }
+
   # 自動取得 max 群數
   max_info <- get_true_max_cluster_count(clusterings)
   max_number_of_clusters <- max_info$overall_max
@@ -295,7 +319,7 @@ cluster_paths <- list(
 
 # 執行並指定 threshold
 result_df <- generate_all_cluster_alignments(
-  cluster_paths,
+  cluster_paths = cluster_paths,
   threshold = 0,
   output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_cluster_compare_result")
 )
@@ -317,7 +341,6 @@ print(stable_clusters, n=Inf)
 # 重新整理穩定的 cluster 結果
 clusterings <- load_all_clusterings(cluster_paths)
 reshaped_stable_df <- reshape_stable_matrix(
-  stable_clusters,
   clusterings,
   output_path = glue("output/R_output/CSV_output/{TASK_TYPE}_cluster_compare_result/stable_cluster_matrix/stable_cluster_matrix_{datetime}.csv")
 )

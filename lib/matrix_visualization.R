@@ -30,7 +30,7 @@ read_similarity_matrix <- function(file_path) {
     # 處理缺失或無效值
     if (any(is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean))) {
       matrix_data_clean[is.na(matrix_data_clean) | is.nan(matrix_data_clean) | is.infinite(matrix_data_clean)] <- 0
-      cat("Warning in reading matrix: Missing or invalid values detected and replaced with 0.\n")
+      # cat("Warning in reading matrix: Missing or invalid values detected and replaced with 0.\n")
     }
 
   } else if (is.matrix(file_path)) {
@@ -273,20 +273,21 @@ file_path <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/winnowing
 # output_path <- "output/viz/dendrogram/winnowing_dendrogram_with_cut.png"
 output_path <- glue("output/viz/dendrogram/{TASK_TYPE}/{TASK_TYPE}_{SIM_METHOD}_dendrogram_with_cut.png")
 optimal_k <- 8
-clusters <- plot_dendrogram_with_cut(
-  file_path,
-  task_type = TASK_TYPE,
-  method = "average",
-  k = optimal_k,
-  output_path = output_path
-)
+# clusters <- plot_dendrogram_with_cut(
+#   file_path,
+#   task_type = TASK_TYPE,
+#   method = "average",
+#   k = optimal_k,
+#   output_path = output_path
+# )
 
 # 將 cluster 寫入 JSON
 output_name <- glue("{TASK_TYPE}_HC_{SIM_METHOD}_clusters")
-json_file_path <- write_list_to_json(
-  clusters,
-  output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/HC"),
-  output_name = output_name)
+# json_file_path <- write_list_to_json(
+#   clusters,
+#   output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/HC"),
+#   output_name = output_name
+# )
 
 
 # Case 2: Using df directly

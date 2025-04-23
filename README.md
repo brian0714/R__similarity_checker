@@ -47,7 +47,7 @@ Example similarity matrix:
 ### Step 2: Cluster Visualization
 Use `matrix_visualization.R` to read the similarity matrix file.
 
-(Perform hierarchical clustering currently)
+Perform "hierarchical clustering":
 
 1. Choose a **linkage method** (e.g., `average`).
 2. Select a **clustering evaluation metric** for determine the optimal number k of clusters (e.g., `Silhouette scores` or `Elbow method`).
@@ -55,9 +55,20 @@ Use `matrix_visualization.R` to read the similarity matrix file.
 
 Note: Step 2 will be concluded in step 1 in the future.
 
+Perform "K-means clustering":
+
+Follow steps in `test_kemans.R`
+
+### Step 3:  Cluster Analysis
+
+1. Make sure the clustering outcomes have saved in json files from Step 2, using `cluster_to_json_writer.R`
+2. Get clustering information (e.g. High Frequency Terms, cluster size, TDM Matrix size, representation doc) by **analyze_clusters_from_json** from `cluster_stat.R`
+3. Clustering alignment: mapping different clustering outcomes by different similarity methods, using `cluster_comparer.R`
+4. Generate **consensus matrix** by multi-similarity methods, using `consensus_similarity_matrix_generator.R` (selecting weights for each similarity matrix or averaging in default)
+
 ---
 
-### Step 3 (Optional): Generate Cluster JSON for Web Visualization
+### (Optional): Generate Cluster JSON for Web Visualization
 If you need a web-compatible clustering result, run `cluster_stat.R` to save clustering results as a JSON file. This JSON file helps the web interface display which documents belong to each cluster.
 
 ---
