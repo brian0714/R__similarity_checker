@@ -163,35 +163,36 @@ datetime <- format(Sys.time(), "%Y%m%d%H%M")
 # sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/winnowing_by_char_similarity_checker_202503271559.csv"
 
 # PRACTICAL consensus matrix
-sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/consensus_matrix/consensus_matrix_average.csv"
+# sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/consensus_matrix/consensus_matrix_average.csv"
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-output_path <- glue("output/viz/sse_curve/{TASK_TYPE}/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
-optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
-cat("Optimal k (elbow point):", optimal_k, "\n")
+# output_path <- glue("output/viz/sse_curve/{TASK_TYPE}/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
+# optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
+# cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 4️⃣ 執行 K-Means 並輸出分群結果
-kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)
-clusters <- kmeans_results$cluster_groups
-representative_docs <- kmeans_results$representative_docs
+# kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)
+# clusters <- kmeans_results$cluster_groups
+# representative_docs <- kmeans_results$representative_docs
 
 # 5️⃣ 將 cluster 寫入 JSON
 output_name <- glue("{TASK_TYPE}_{SIM_METHOD}_clusters")
 # output_name <- paste0(TASK_TYPE, "_clusters_")
 
-json_file_path <- write_list_to_json(
-  clusters,
-  output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
-  output_name = output_name)
+# json_file_path <- write_list_to_json(
+#   clusters,
+#   output_dir = glue("output/R_output/json_output/{TASK_TYPE}_clusters/"),
+#   output_name = output_name
+# )
 
 # # 6️⃣ 分析 cluster 的 JSON 檔案
 # json_file_path <- "output/R_output/json_output/CREATIVE_clusters_202503061509.json"
 # json_file_path <- "output/R_output/json_output/PRACTICAL_clusters_202503061020.json"
-analyze_clusters_from_json(
-    json_file_path,
-    TASK_TYPE=TASK_TYPE,
-    representative_docs=representative_docs
-)
+# analyze_clusters_from_json(
+#     json_file_path,
+#     TASK_TYPE=TASK_TYPE,
+#     representative_docs=representative_docs
+# )
 
 # # 【Unused】 繪製並存儲 K-Means 分群結果
 # plot_kmeans_clusters(sim_matrix, kmeans_results, TASK_TYPE)

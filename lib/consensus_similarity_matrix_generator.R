@@ -79,8 +79,8 @@ file_paths <- c(
 )
 
 # 呼叫函數並平均加總所有相似度矩陣
-consensus_matrix <- consensus_similarity_matrix_generator(
-  file_paths,
-  weights = "average",
-  output_path = glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/consensus_matrix/consensus_matrix_average.csv")
-)
+# consensus_matrix <- consensus_similarity_matrix_generator(
+#   file_paths,
+#   weights = "average",
+#   output_path = glue("output/R_output/CSV_output/{TASK_TYPE}_similarity_matrices/consensus_matrix/consensus_matrix_average.csv")
+# )

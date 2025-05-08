@@ -274,5 +274,5 @@ output_name <- paste0(TASK_TYPE, "_clusters_")
 # cat("Cluster use stats written to", output_dir, "\n")
 
 # 分析 cluster 的 JSON 檔案
-json_file_path <- "output/R_output/json_output/CREATIVE_clusters/CREATIVE_HC_cosine_clusters_202503271437.json"
+# json_file_path <- "output/R_output/json_output/CREATIVE_clusters/CREATIVE_HC_cosine_clusters_202503271437.json"
 # analyze_clusters_from_json(json_file_path, TASK_TYPE)

@@ -223,6 +223,76 @@ plot_dendrogram_with_cut <- function(file_path, task_type, method = "average", k
   return(cluster_list)
 }
 
+# Boxplot function for similarity scores
+plot_similarity_boxplot <- function(
+  file_path,
+  title = "Similarity Score Distribution",
+  save_path = NULL
+) {
+  # 讀取資料
+  matrix_data <- read.csv(file_path)
+  sim_matrix <- as.matrix(matrix_data[,-1])
+
+  if (!is.matrix(sim_matrix)) {
+    stop("❌ Input must be a matrix.")
+  }
+
+  n <- nrow(sim_matrix)
+  if (n != ncol(sim_matrix)) {
+    stop("❌ Similarity matrix must be square (N x N).")
+  }
+
+  # 移除對角線（自己 vs 自己 = 1 或 NA）
+  all_scores <- c()
+  for (i in 1:n) {
+    scores <- sim_matrix[i, ]
+    scores[i] <- NA
+    all_scores <- c(all_scores, scores)
+  }
+
+  all_scores <- na.omit(all_scores)
+
+  # 畫圖
+  boxplot(
+    all_scores,
+    main = title,
+    ylab = "Similarity Score",
+    col = "skyblue",
+    border = "darkblue",
+    ylim = c(0, 1)
+  )
+
+  if (!is.null(save_path)) {
+    png(filename = save_path, width = 600, height = 400)
+    boxplot(
+      all_scores,
+      main = title,
+      ylab = "Similarity Score",
+      col = "skyblue",
+      border = "darkblue"
+    )
+    dev.off()
+    cat("✅ Saved boxplot to:", save_path, "\n")
+  }
+
+  # 回傳 summary 統計
+  return(summary(all_scores))
+}
+
+plot_all_similarity_boxplots <- function(input_dir, output_dir = "output/viz/boxplot (similarity scores)") {
+  files <- list.files(input_dir, pattern = "_checker_.*\\.csv$", full.names = TRUE)
+
+  for (file_path in files) {
+    filename <- basename(file_path)
+    method <- sub("_checker_.*", "", filename)  # e.g. cosine_checker_20250424... → cosine
+    title <- glue("{method} Similarity Score Distribution")
+    save_path <- file.path(output_dir, paste0(method, "_similarity_score_boxplot.png"))
+
+    plot_similarity_boxplot(file_path, title, save_path)
+  }
+}
+
+
 # Example usage
 TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
 SIM_METHOD <- "winnowing_by_char"  # "jaccard" or "overlap" or "winnowing" or "winnowing_by_char" or "cosine" or "levenshtein"

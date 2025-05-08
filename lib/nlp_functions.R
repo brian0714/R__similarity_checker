@@ -238,6 +238,30 @@ text_vectorizer <- function(text1, text2, tokenize_method = "word", vectorize_me
   return(list(vec1, vec2))
 }
 
+# Preprocess Rmd text
+clean_rmd <- function(text) {
+  text <- tolower(text)
+  # Convert all characters to lowercase for case-insensitive comparison
+
+  text <- gsub("```\\{r.*?\\}", "```{r}", text)
+  # Normalize R code chunk headers (e.g., ```{r echo=TRUE} → ```{r})
+
+  text <- gsub("```", "", text)
+  # Remove all remaining R Markdown code chunk delimiters (```)
+
+  text <- gsub("#+.*", "", text)
+  # Remove all comment lines that start with one or more "#"
+
+  text <- gsub("\\s+", " ", text)
+  # Replace multiple spaces/tabs/newlines with a single space
+
+  trimws(text)
+  # Remove leading and trailing whitespace
+
+  # Return the cleaned text
+}
+
+
 # Example usage
 text1 <- "The cat sits on the mat."
 text2 <- "The dog sits on the mat."

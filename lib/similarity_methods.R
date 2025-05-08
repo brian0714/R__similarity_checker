@@ -89,29 +89,29 @@ cosine_similarity <- function(text1, text2, tokenize_method = "word") {
 }
 
 # Levenshtein Distance
-levenshtein_distance <- function(text1, text2, tokenized=FALSE) {
+levenshtein_distance <- function(text1, text2, tokenized = FALSE, normalized = FALSE, rmd = FALSE) {
   if (tokenized) {
-    # Tokenize text1 and text2
-    tokens1 <- tokenize(text1, remove_punc=TRUE, remove_sw=TRUE)
-    tokens2 <- tokenize(text2, remove_punc=TRUE, remove_sw=TRUE)
-
-    # 轉換 tokens 為單一字符串，並以空格連接
-    tokenized_text1 <- paste(tokens1, collapse = " ")
-    tokenized_text2 <- paste(tokens2, collapse = " ")
-
-    # 計算 Levenshtein Distance
-    distance <- stringdist::stringdist(tokenized_text1, tokenized_text2, method = "lv")
+    # 若使用 token 化，比對前不使用 Rmd 清理
+    tokens1 <- tokenize(text1, remove_punc = TRUE, remove_sw = TRUE)
+    tokens2 <- tokenize(text2, remove_punc = TRUE, remove_sw = TRUE)
+    text1 <- paste(tokens1, collapse = " ")
+    text2 <- paste(tokens2, collapse = " ")
+  } else if (rmd) {
+    # 若未 token 化且指定 rmd，才使用 clean_rmd
+    text1 <- clean_rmd(text1)
+    text2 <- clean_rmd(text2)
   }
-  else {
-    distance <- stringdist::stringdist(text1, text2, method = "lv")
-  }
-  return(distance)
-}
 
-normalized_levenshtein_distance <- function(text1, text2, tokenized=FALSE) {
-  max_len <- max(nchar(text1), nchar(text2))
-  if (max_len == 0) return(0)
-  return(levenshtein_distance(text1, text2, tokenized = tokenized) / max_len)
+  # 計算 Levenshtein Distance
+  distance <- stringdist::stringdist(text1, text2, method = "lv")
+
+  if (normalized) {
+    max_len <- max(nchar(text1), nchar(text2))
+    if (max_len == 0) return(0)
+    return(distance / max_len)
+  } else {
+    return(distance)
+  }
 }
 
 # Hamming Distance

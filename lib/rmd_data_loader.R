@@ -69,6 +69,26 @@ load_doc_table <- function(csv_path) {
   return(doc_table)
 }
 
+get_filename_by_doc_id <- function(csv_path, doc_id) {
+  if (!file.exists(csv_path)) {
+    stop(glue("❌ File does not exist: {csv_path}"))
+  }
+
+  doc_table <- load_doc_table(csv_path)
+  if (!("doc_id" %in% colnames(doc_table)) || !("filename" %in% colnames(doc_table))) {
+    stop("❌ doc_table must contain 'doc_id' and 'filename' columns.")
+  }
+
+  match_row <- doc_table[doc_table$doc_id == doc_id, ]
+
+  if (nrow(match_row) == 0) {
+    warning("⚠️ doc_id not found: ", doc_id)
+    return(NA)
+  }
+
+  return(match_row$filename)
+}
+
 
 # Example usage
 # csv_path <- build_raw_doc_table("data/code_data/week 8")

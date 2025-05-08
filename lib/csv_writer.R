@@ -1,4 +1,5 @@
 # Load necessary library
+library(glue)
 library(readr)
 
 # Define the csv_writer function
@@ -44,7 +45,7 @@ csv_writer <- function(users, similarities, output_dir = "output/R_output/CSV_ou
     write.csv(df, file = csv_file_path, row.names = FALSE)
 
     # 成功訊息
-    cat("CSV file - '", similarity_name, "_checker_", datetime, ".csv' has been created.\n")
+    cat(glue("CSV file has been created in {csv_file_path}.\n"))
 
     # 將當前 df 存入 dfs 列表中
     dfs[[similarity_name]] <- df
