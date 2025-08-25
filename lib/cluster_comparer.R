@@ -84,11 +84,13 @@ compare_clusterings <- function(cluster1, cluster2, cluster_method_names = NULL,
 #   output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_cluster_compare_result")
 # )
 
+# # Check result
 # # 查看回傳的結果
 # print(result$similarity_matrix)
 # print(result$best_match_from_1_to_2)
 # print(result$best_match_from_2_to_1)
 
+# Load JSON files as clusters
 # 讀取多個 cluster 結果的 JSON 檔案並轉換為 clusterings
 load_all_clusterings <- function(cluster_paths) {
   clusterings <- list()
@@ -102,6 +104,7 @@ load_all_clusterings <- function(cluster_paths) {
   return(clusterings)
 }
 
+# Get the maximum cluster count for each clustering method
 # 取得所有 clustering 的最大群數 (計算每個 clustering 方法的最大群數，並返回一個列表)
 get_true_max_cluster_count <- function(clusterings) {
   method_cluster_counts <- purrr::map_dfr(clusterings, ~tibble(cluster_count = length(.x)), .id = "method")
@@ -114,11 +117,13 @@ get_true_max_cluster_count <- function(clusterings) {
   ))
 }
 
+# List out all cluster alignments with Jaccard index filtering (by threshold)
 # 多個 clusterings 全列出對應 + threshold 過濾
 generate_all_cluster_alignments <- function(cluster_paths = NULL,
                                             clusterings = NULL,
                                             threshold = 0.3,
                                             output_dir = NULL) {
+  # Load all clustering results
   # 載入所有 clustering 結果
   if (is.null(clusterings)) {
     if (is.null(cluster_paths)) {
@@ -143,7 +148,7 @@ generate_all_cluster_alignments <- function(cluster_paths = NULL,
       source_label <- paste0(method_i, "_C", k)
 
       for (j in seq_along(clusterings)) {
-        if (j == i) next  # 不與自身比對
+        if (j == i) next  # will not compare with itself (不與自身比對)
 
         method_j <- method_names[j]
         clusters_j <- clusterings[[j]]
@@ -170,6 +175,7 @@ generate_all_cluster_alignments <- function(cluster_paths = NULL,
 
   result_df <- bind_rows(all_matches)
 
+  # Write the result to a CSV file
   # 將結果寫入 CSV 檔案
   if (!is.null(output_dir)) {
     datetime <- format(Sys.time(), "%Y%m%d%H%M")
@@ -181,11 +187,13 @@ generate_all_cluster_alignments <- function(cluster_paths = NULL,
   return(result_df)
 }
 
+# Filter stable clusters based on Jaccard index threshold
 # 篩選出 Jaccard_Score >= threshold 的穩定 cluster
 get_stable_clusters <- function(alignment_df, threshold = 0.5) {
   stable_clusters <- alignment_df %>%
     filter(Jaccard_Score >= threshold) %>%
 
+    # Compute the number of methods for each Source cluster
     # 計算每個 Source cluster 對應幾個獨立方法
     group_by(Source_Cluster) %>%
     summarise(
@@ -193,6 +201,7 @@ get_stable_clusters <- function(alignment_df, threshold = 0.5) {
       .groups = "drop"
     ) %>%
 
+    # Extract method name and cluster number for sorting
     # 解析方法名稱與群號（用於排序）
     mutate(
       method = str_extract(Source_Cluster, "^[^_]+"),
@@ -205,6 +214,7 @@ get_stable_clusters <- function(alignment_df, threshold = 0.5) {
   return(stable_clusters)
 }
 
+# Plot Jaccard similarity distribution
 # 畫 Jaccard 相似度分佈圖
 plot_jaccard_distribution <- function(alignment_df, threshold = 0.3, save_path = "jaccard_distribution.png") {
   p <- ggplot(alignment_df, aes(x = Jaccard_Score)) +
@@ -223,6 +233,7 @@ plot_jaccard_distribution <- function(alignment_df, threshold = 0.3, save_path =
   return(p)
 }
 
+# Reshape stable clusters into a matrix format
 # 重新整理穩定的 cluster 結果
 reshape_stable_matrix <- function(clusterings, stable_clusters_df = NULL, output_path = NULL) {
   if (is.null(stable_clusters_df)) {
@@ -272,7 +283,7 @@ reshape_stable_matrix <- function(clusterings, stable_clusters_df = NULL, output
 }
 
 
-# test generate_all_cluster_alignments
+# Test generate_all_cluster_alignments
 TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
@@ -317,6 +328,7 @@ cluster_paths <- list(
 #   winnowing_by_char = "output/R_output/json_output/PRACTICAL_clusters/HC/PRACTICAL_HC_winnowing_by_char_clusters.json"
 # )
 
+# Set up a threshold and execute the alignment generation
 # 執行並指定 threshold
 result_df <- generate_all_cluster_alignments(
   cluster_paths = cluster_paths,
@@ -324,20 +336,23 @@ result_df <- generate_all_cluster_alignments(
   output_dir = glue("output/R_output/CSV_output/{TASK_TYPE}_cluster_compare_result")
 )
 
+# Check result
 # 查看結果
 print(result_df)
 
+# Filter out stable clusters where Jaccard_Score >= 0.5
 # 篩選出 Jaccard_Score >= 0.5 的穩定 cluster
 stable_clusters <- get_stable_clusters(result_df, threshold = 0.3)
 print(stable_clusters, n=Inf)
 
-# 畫圖
+# Plot 畫圖
 # plot_jaccard_distribution(
 #   result_df,
 #   threshold = 0.2,
 #   save_path = glue("output/viz/jaccard_distribution_plot/{TASK_TYPE}_jaccard_distribution_plot_{datetime}.png")
 # )
 
+# Reshape stable clusters into a dataframe format
 # 重新整理穩定的 cluster 結果
 clusterings <- load_all_clusterings(cluster_paths)
 reshaped_stable_df <- reshape_stable_matrix(

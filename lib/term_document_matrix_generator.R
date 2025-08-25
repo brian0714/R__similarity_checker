@@ -53,17 +53,21 @@ plot_top_terms <- function(
     output_path = "output/viz/term_count_barplot/top_10_terms_plot.png",
     remove_terms = c()
 ) {
+    # Remove specified terms (if any)
     # 移除指定的詞（如果有）
     if (length(remove_terms) > 0) {
         term_freq_df <- term_freq_df[!term_freq_df$term %in% remove_terms, ]
     }
 
+    # Ensure there are enough terms to plot
     # 確保 top_n 不超過可用的詞數
     top_n <- min(top_n, nrow(term_freq_df))
 
+    # Select the top_n most frequent terms
     # 選取前 top_n 個高頻詞
     top_terms <- term_freq_df$term[1:top_n]
 
+    # Plot the top_n terms into a barplot
     # 繪製前 top_n 個高頻詞的長條圖
     p <- ggplot(term_freq_df[1:top_n,], aes(x = reorder(term, -freq), y = freq)) +
         geom_bar(stat = "identity", fill = "steelblue") +
@@ -72,13 +76,16 @@ plot_top_terms <- function(
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1))  # 避免文字重疊
 
+    # Save the plot to the specified output path
     # 匯出圖檔
     ggsave(output_path, plot = p, width = 8, height = 6, dpi = 300)
 
+    # Return the top_n terms as a vector
     # 回傳 top_n 文字 vector
     return(top_terms)
 }
 
+# Example: Plot the top-20 terms
 # 使用範例：只繪製前 20 個最高頻詞
 # top_n <- 20
 # output_path <- paste0("output/viz/term_count_barplot/", TASK_TYPE, "_top_", top_n, "_terms_", datetime, ".png")
@@ -86,22 +93,27 @@ plot_top_terms <- function(
 
 # EDA: Plot a word cloud
 plot_wordcloud <- function(term_freq_df, top_n = NULL, output_path = "output/viz/wordcloud/wordcloud.png") {
+    # Filter the top_n terms (if provided)
     # 篩選前 top_n 個詞（如果提供 top_n）
     if (!is.null(top_n)) {
         top_n <- min(top_n, nrow(term_freq_df))  # 確保 top_n 不超過可用行數
         term_freq_df <- term_freq_df[1:top_n, ]  # 只取前 top_n 個高頻詞
     }
 
+    # Open a graphics device to avoid WordCloud display issues
     # 開啟圖形裝置，避免 WordCloud 顯示問題
     png(output_path, width = 800, height = 600)
 
+    # Generate the word cloud
     # 繪製詞雲
     wordcloud(words = term_freq_df$term, freq = term_freq_df$freq, min.freq = 1,
               colors = brewer.pal(8, "Dark2"), scale = c(3, 0.5))
 
-    dev.off()  # 關閉圖形裝置
+    dev.off()  # Close the graphics device 關閉圖形裝置
     message("Word cloud saved to: ", output_path)
 }
+
+# Example: Plot the top-50 terms
 # 使用範例：只繪製前 50 個最高頻詞
 top_n <- 50
 output_path <- paste0("output/viz/wordcloud/", TASK_TYPE, "_top_", top_n,"_wordcloud_", datetime, ".png")
@@ -110,36 +122,42 @@ output_path <- paste0("output/viz/wordcloud/", TASK_TYPE, "_top_", top_n,"_wordc
 # EDA: Plot a heatmap of the term-document matrix
 plot_tdm_heatmap <- function(tdm_matrix, output_path = "output/viz/heatmap/tdm/tdm_heatmap.png",
                              doc_range = NULL, min_freq = NULL) {
+    # Filter the term-document matrix based on min_freq
     # 過濾低頻詞（min_freq）
     if (!is.null(min_freq)) {
         term_sums <- rowSums(tdm_matrix)  # 計算每個詞的總頻率
         tdm_matrix <- tdm_matrix[term_sums >= min_freq, ]  # 只保留頻率 ≥ min_freq 的詞
     }
 
+    # Limit the number of documents (doc_range)
     # 限制文件數量（doc_range）
     if (!is.null(doc_range)) {
-        start_doc <- max(1, doc_range[1])  # 確保範圍不小於 1
-        end_doc <- min(ncol(tdm_matrix), doc_range[2])  # 確保不超過總文件數
-        tdm_matrix <- tdm_matrix[, start_doc:end_doc]  # 取指定範圍的文件
+        start_doc <- max(1, doc_range[1])  # Ensure the doc_range >= 1 (確保範圍不小於 1)
+        end_doc <- min(ncol(tdm_matrix), doc_range[2])  # Ensure the end_doc does not exceed total documents (確保不超過總文件數)
+        tdm_matrix <- tdm_matrix[, start_doc:end_doc]  # Get the specified range of documents (取得指定範圍的文件)
     }
 
+    # Ensure the TDM still has terms and documents (to avoid empty matrix errors)
     # 確保 TDM 仍然有詞和文件（避免空矩陣錯誤）
     if (nrow(tdm_matrix) == 0 || ncol(tdm_matrix) == 0) {
         message("Warning: No data left after filtering. Heatmap not generated.")
         return()
     }
 
+    # Open a graphics device to avoid heatmap display issues
     # 開啟圖形裝置
     png(output_path, width = 1600, height = 1200)
 
+    # Plot the heatmap
     # 繪製熱圖
     pheatmap(tdm_matrix, cluster_rows = TRUE, cluster_cols = TRUE,
              main = "Heatmap of Term-Document Matrix")
 
-    dev.off()  # 關閉圖形裝置
+    dev.off()  # Close the graphic device 關閉圖形裝置
     message("Heatmap saved to: ", output_path)
 }
 
+# Example: Plot the heatmap of the term-document matrix
 # 使用範例：
 # output_path <- paste0("output/viz/heatmap/tdm/", TASK_TYPE, "_TDM_heatmap_", datetime, ".png")
 # output_path <- paste0("output/viz/heatmap/tdm/", TASK_TYPE, "_TDM_heatmap_r1.png")

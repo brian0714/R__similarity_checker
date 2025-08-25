@@ -279,18 +279,153 @@ plot_similarity_boxplot <- function(
   return(summary(all_scores))
 }
 
+# Function to plot all similarity boxplots from a directory
 plot_all_similarity_boxplots <- function(input_dir, output_dir = "output/viz/boxplot (similarity scores)") {
   files <- list.files(input_dir, pattern = "_checker_.*\\.csv$", full.names = TRUE)
 
   for (file_path in files) {
     filename <- basename(file_path)
     method <- sub("_checker_.*", "", filename)  # e.g. cosine_checker_20250424... → cosine
+    method <- paste0(toupper(substr(method, 1, 1)), substr(method, 2, nchar(method)))  # 將第一個字母大寫
     title <- glue("{method} Similarity Score Distribution")
     save_path <- file.path(output_dir, paste0(method, "_similarity_score_boxplot.png"))
 
     plot_similarity_boxplot(file_path, title, save_path)
   }
 }
+
+# Function to plot combined similarity boxplot from multiple files in a folder
+plot_combined_similarity_boxplot <- function(
+  folder_path,
+  title = "Similarity Score Distribution Across Methods",
+  save_path = NULL
+) {
+  file_paths <- list.files(
+    path = folder_path,
+    pattern = "checker_.*\\.csv$",
+    full.names = TRUE
+  )
+
+  # Extract method names from file paths
+  # 擷取 method 名稱並轉為 Title Case
+  method_names_raw <- tools::toTitleCase(
+    sub("_checker.*", "", basename(file_paths))
+  )
+
+  # Line break handling: add newline before "(" or "_" for better alignment
+  # 自動換行處理：遇到 "(" 或 "_" 時換行；否則強制加前導換行，統一基線
+  method_names <- sapply(method_names_raw, function(name) {
+    if (grepl("\\(", name)) {
+      name <- sub("\\(", "\n(", name)
+    } else if (grepl("_", name)) {
+      name <- sub("_", "\n_", name)
+    } else {
+      name <- paste0("\n", name)
+    }
+    return(name)
+  })
+
+  # Load all similarity matrices; remove diagonal and convert to scores
+  # 讀取每份 similarity matrix，移除對角線後轉為一組分數
+  all_scores_list <- list()
+  for (i in seq_along(file_paths)) {
+    file_path <- file_paths[i]
+    label <- method_names[i]
+
+    matrix_data <- read.csv(file_path)
+    sim_matrix <- as.matrix(matrix_data[, -1])
+    n <- nrow(sim_matrix)
+
+    if (!is.matrix(sim_matrix) || n != ncol(sim_matrix)) {
+      warning(paste("Skipping invalid matrix:", file_path))
+      next
+    }
+
+    scores <- c()
+    for (j in 1:n) {
+      row <- sim_matrix[j, ]
+      row[j] <- NA
+      scores <- c(scores, row)
+    }
+
+    all_scores_list[[label]] <- na.omit(scores)
+  }
+
+  # Plot
+  # Add margins to avoid label overlap (增加下邊距避免標籤壓線)
+  par(mar = c(8, 4, 4, 2))
+
+  # Draw boxplot without x-axis labels (先畫框框，不顯示 x 軸標籤)
+  # 畫空 boxplot，不顯示 x 軸標籤（先畫框框）
+  bp <- boxplot(
+    all_scores_list,
+    main = title,
+    ylab = "Similarity Score",
+    col = "skyblue",
+    border = "darkblue",
+    outline = FALSE,
+    xaxt = "n", # Turn off x-axis labels (關掉 x 軸標籤)
+    las = 1,
+    cex.axis = 0.9,
+    width = rep(1, length(all_scores_list)),
+    xaxs = "i"
+  )
+
+  # Add x-axis labels manually without labels (加上 x 軸刻度（不含標籤）)
+  # axis(
+  #   1,
+  #   at = 1:length(method_names),
+  #   labels = FALSE,
+  #   tck = 0  # 小小刻度線，不會重疊整條軸線)
+  # )
+
+  # Use text() to add labels below the x-axis
+  # 用 text() 加入人工對齊標籤（避免 baseline 不齊）
+  text(
+    x = 1:length(method_names),
+    y = par("usr")[3] - 0.15,  # 軸線底下
+    labels = method_names,
+    xpd = TRUE,
+    srt = 0,
+    adj = 0.5,
+    cex = 0.9
+  )
+
+  # Save the plot to the output path if specified
+  # 若指定路徑則輸出圖片
+  if (!is.null(save_path)) {
+    png(filename = save_path, width = 1000, height = 600)
+    par(mar = c(8, 4, 4, 2))
+    bp <- boxplot(
+      all_scores_list,
+      main = title,
+      ylab = "Similarity Score",
+      col = "skyblue",
+      border = "darkblue",
+      outline = FALSE,
+      xaxt = "n",
+      las = 1,
+      cex.axis = 0.9,
+      width = rep(1, length(all_scores_list)),
+      xaxs = "i"
+    )
+    axis(1, at = 1:length(method_names), labels = FALSE)
+    text(
+      x = 1:length(method_names),
+      y = par("usr")[3] - 0.05,
+      labels = method_names,
+      xpd = TRUE,
+      srt = 0,
+      adj = 0.5,
+      cex = 0.9
+    )
+    dev.off()
+    cat("✅ Boxplot saved to:", save_path, "\n")
+  }
+
+  invisible(summary(all_scores_list))
+}
+
 
 
 # Example usage
@@ -359,8 +494,15 @@ output_name <- glue("{TASK_TYPE}_HC_{SIM_METHOD}_clusters")
 #   output_name = output_name
 # )
 
+# 範例使用，繪製相似度分數的箱型圖在同一 X 軸上
+folder_path <- "output/R_output/CSV_output/rmd_similarity_matrices/week 8"
+plot_combined_similarity_boxplot(
+  folder_path = folder_path,
+  title = "Similarity Score Distribution across Methods",
+  save_path = "output/viz/boxplot (similarity scores)/combined_boxplot.png"  # 可選
+)
 
-# Case 2: Using df directly
+# (Deprecated) Case 2: Using df directly
 # Assuming df is a pre-loaded data frame with similar structure
 # output_path <- "output/viz/heatmap_dend_output.png"
 # df = ??

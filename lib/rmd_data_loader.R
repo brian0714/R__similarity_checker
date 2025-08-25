@@ -5,6 +5,7 @@ library(fs)
 build_raw_doc_table <- function(input_dir, output_csv = NULL) {
   rmd_files <- list.files(path = input_dir, pattern = "\\.(R|r)md$", full.names = TRUE)
 
+  # Return a list if no Rmd files found
   # 回傳 list，若讀不到就給 NA 並記錄
   read_raw_text <- function(file_path) {
     tryCatch({
@@ -23,8 +24,8 @@ build_raw_doc_table <- function(input_dir, output_csv = NULL) {
     text = raw_texts
   )
 
-  # 基本統計
-  message("📦 Document count: ", nrow(doc_table))
+  # Basic statistics 基本統計
+  message("Document count: ", nrow(doc_table))
 
   failed_rows <- which(is.na(doc_table$text) | doc_table$text == "")
   if (length(failed_rows) > 0) {
@@ -34,7 +35,7 @@ build_raw_doc_table <- function(input_dir, output_csv = NULL) {
     message("✅ All documents loaded successfully.")
   }
 
-  # 處理儲存路徑
+  # Process the input directory name for output path
   dir_name <- basename(normalizePath(input_dir))
 
   if (is.null(output_csv)) {
@@ -95,3 +96,8 @@ get_filename_by_doc_id <- function(csv_path, doc_id) {
 
 # load_doc_table(csv_path)
 # load_doc_table("output/R_output/CSV_output/rmd_doc_table/week 8/raw_doc_table.csv")
+
+# get_filename_by_doc_id(
+#   csv_path="output/R_output/CSV_output/rmd_doc_table/week 8/raw_doc_table.csv",
+#   doc_id=78
+# )

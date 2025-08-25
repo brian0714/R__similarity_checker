@@ -24,7 +24,7 @@ A front-end interface for visualizing clustering results from `cluster.json`. It
 - A simple NLP-based interactive user experience (e.g., n-gram selection)
 - To open the web; Type `python3 -m http.server 8000` in the command to run the html page on web browser
 
-### 📂 `deploy_project`
+### 📂 `deploy_project` (need permission)
 Contains the final version of the web visualization for deployment.
 
 ---
@@ -47,24 +47,22 @@ Example similarity matrix:
 ### Step 2: Cluster Visualization
 Use `matrix_visualization.R` to read the similarity matrix file.
 
-Perform "hierarchical clustering":
+- Perform "Hierarchical Clustering":
 
 1. Choose a **linkage method** (e.g., `average`).
 2. Select a **clustering evaluation metric** for determine the optimal number k of clusters (e.g., `Silhouette scores` or `Elbow method`).
 3. Generate a **dendrogram with clustering results**.
 
-Note: Step 2 will be concluded in step 1 in the future.
-
-Perform "K-means clustering":
+- Perform "K-means Clustering":
 
 Follow steps in `test_kemans.R`
 
-### Step 3:  Cluster Analysis
+### Step 3:  Clustering Analysis
 
 1. Make sure the clustering outcomes have saved in json files from Step 2, using `cluster_to_json_writer.R`
 2. Get clustering information (e.g. High Frequency Terms, cluster size, TDM Matrix size, representation doc) by **analyze_clusters_from_json** from `cluster_stat.R`
 3. Clustering alignment: mapping different clustering outcomes by different similarity methods, using `cluster_comparer.R`
-4. Generate **consensus matrix** by multi-similarity methods, using `consensus_similarity_matrix_generator.R` (selecting weights for each similarity matrix or averaging in default)
+4. Generate **consensus matrix** by hybrid similarity methods, using `consensus_similarity_matrix_generator.R` (selecting weights for each similarity matrix or averaging in default)
 
 ---
 

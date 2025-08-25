@@ -39,6 +39,7 @@ create_corpus <- function(
     texts_vector <- as.vector(df$final_submission)
   }
 
+  # Use `udpipe` for POS tagging if specified
   # 使用 `udpipe` 進行 POS 標註
   filter_pos <- function(text, POS) {
     if (identical(POS, FALSE)) return(text)  # 不過濾，直接回傳原文本
@@ -72,6 +73,7 @@ create_corpus <- function(
     return(paste(filtered_words, collapse = " "))
   }
 
+  # Filter by part of speech (POS) if specified
   # 過濾 POS
   if (POS != FALSE) {
     texts_vector <- sapply(texts_vector, filter_pos, POS = POS)
@@ -118,12 +120,14 @@ create_corpus <- function(
   }
 }
 
+# Set up a Document-Term matrix (DTM) using TF for the entire corpus
 # 建立大語料庫的 DTM (TF)
 create_dtm_tf <- function(corpus) {
   dtm <- DocumentTermMatrix(corpus)
   return(dtm)
 }
 
+# Set up a Document-Term matrix (DTM) using TF-IDF for the entire corpus
 # 建立大語料庫的 DTM (TF-IDF)
 create_dtm_tfidf <- function(corpus) {
   dtm <- DocumentTermMatrix(corpus, control = list(weighting = weightTfIdf))
@@ -170,6 +174,7 @@ remove_stopwords <- function(tokens) {
 
 # Remove selected punctuations
 remove_selected_punctuation <- function(text) {
+  # Remove most punctuation except "-", "/"
   # 刪除大部分標點, except "-", "/"
   text <- gsub("[!\"#$%&'()*+,./:;<=>?@[\\]^_`{|}~]", "", text, perl = TRUE)
   return(text)

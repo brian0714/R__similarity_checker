@@ -19,7 +19,7 @@ compare_matrix_generator <- function(
 ) {
   start_time <- Sys.time()
 
-  # Step 1: 檢查並讀取資料
+  # Step 1: Check and read the data (檢查並讀取資料)
   if (!file.exists(input_file_path)) {
     stop("❌ Error: Input file does not exist.")
   }
@@ -43,6 +43,7 @@ compare_matrix_generator <- function(
 
   cat("The size of the df:", nrow(df), "\n")
 
+  # Step 1-2: Check if there are duplicate doc_ids, if so, handle them
   # Step 1-2: 檢查是否有重複的 doc_ids，若有則處理
   if (any(duplicated(doc_ids))) {
     cat("⚠️ Detected duplicate doc_ids. Proceeding to remove duplicates...\n")
@@ -67,7 +68,7 @@ compare_matrix_generator <- function(
     # cat("✅ No duplicate doc_ids found.\n")
   }
 
-  # Step 2: 初始化相似度矩陣
+  # Step 2: Initialize the similarity matrix (初始化相似度矩陣)
   available_methods <- c(
     "cosine", "cosine_bigram", "cosine_trigram",
     "euclidean", "jaccard", "levenshtein", "overlap",
@@ -86,13 +87,13 @@ compare_matrix_generator <- function(
 
   cat("🔧 Enabled methods:", paste(methods, collapse = ", "), "\n")
 
-  # Step 3: 計算相似度
+  # Step 3: Compute Similarity 計算相似度
   for (i in 1:(n - 1)) {
     cat("🔄 Processing document", i, "of", n, "\n")
-    # 進度條
+    # Progress bar (進度條)
     # pb <- txtProgressBar(min = 0, max = n, style = 3)
     # setTxtProgressBar(pb, i)
-    # Sys.sleep(0.1)  # 模擬計算時間
+    # Sys.sleep(0.1)  # Simulate time progress 模擬計算時間
 
     for (j in (i + 1):n) {
       text_i <- final_submissions[i]
@@ -146,18 +147,18 @@ compare_matrix_generator <- function(
     }
   }
 
-  # Step 4: 匯出相似度矩陣
+  # Step 4: Export the similarity matrix (匯出相似度矩陣)
   dfs <- csv_writer(
     unique_doc_ids,
     similarities,
     output_dir
   )
 
-  # Step 5: 顯示處理時間
+  # Step 5: Display the processing time (顯示處理時間)
   process_time <- round(difftime(Sys.time(), start_time, units = "secs"), 2)
   cat("\n⏱️ Process Time:", process_time, "s\n")
 
-  # Step 6: 繪製熱圖
+  # Step 6: Plot heatmap 繪製熱圖
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
   for (similarity_name in names(dfs)) {

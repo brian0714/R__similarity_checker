@@ -1,4 +1,4 @@
-# 安裝並載入必要的套件
+# Load pacakge (安裝並載入必要的套件)
 # install.packages("tm")  # 文本處理
 # install.packages("topicmodels")  # LDA模型
 # install.packages("tidytext")  # 文字分析

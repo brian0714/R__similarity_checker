@@ -7,10 +7,10 @@ write_list_to_json <- function(data_list,
                             pretty = TRUE, # Whether to format the JSON output for readability
                             output_name = "clusters") {
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
-  # 確保資料夾存在
+  # Ensure the output directory exists (確保資料夾存在)
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-  # 定義 JSON 檔案路徑
+  # Define the JSON file path (定義 JSON 檔案路徑)
   if (!grepl("\\.json$", output_name)) {  # 檢查 output_name 是否已經有 .json 結尾
     output_name <- glue("{output_name}_{datetime}.json")
   }
@@ -57,9 +57,10 @@ replace_ids_with_submissions <- function(json_path, csv_path, task_type, output_
   cat("Replaced JSON written to:", json_file_path, "\n")
 }
 
+# Read JSON and convert to R list, each element is a user_id cluster
 # 取 JSON 並轉換為 R list，每個元素是一個 user_id cluster
 read_json_as_clusters <- function(json_path) {
     json_data <- fromJSON(json_path)
-    cluster_list <- lapply(json_data, as.character)  # 確保是字符型向量
+    cluster_list <- lapply(json_data, as.character)  # Ensure each cluster is a character vector (確保每個 cluster 是字符型向量)
     return(cluster_list)
 }

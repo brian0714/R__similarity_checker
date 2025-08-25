@@ -142,6 +142,7 @@ merge_most_similar_docs <- function(input_dir, output_csv = "merged_most_similar
 merge_similarity_stats <- function(
     input_dir,
     score_type = c("average_score", "std_score"),
+    output_path = NULL,
     output_csv = NULL # "merged_doc_similarity_stats.csv"
 ) {
   score_type <- match.arg(score_type)
@@ -177,8 +178,11 @@ merge_similarity_stats <- function(
     output_csv <- paste0("merged_doc_similarity_stats_", score_type, ".csv")
   }
 
-  output_path <- file.path(input_dir, output_csv)
-  dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+  if (is.null(output_path)) {
+    output_path <- file.path(input_dir, output_csv)
+    dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+  }
+
   write.csv(merged_df, output_path, row.names = FALSE)
   cat("✅ Merged similarity stats saved to:", output_path, "\n")
   return(merged_df)
@@ -196,10 +200,11 @@ SIM_METHOD = "jaccard"
 # similarities <- compare_matrix_generator(
 #   input_file_path =  glue("output/R_output/CSV_output/rmd_doc_table/{WEEK}/raw_doc_table.csv"),
 #   output_dir = glue("output/R_output/CSV_output/rmd_similarity_matrices/{WEEK}"),
-#   methods = c("cosine", "overlap") # c("jaccard")
+#   methods = c("jaccard", "levenshtein") # c("cosine", "overlap")
 # )
 
-# Cosine
+# Pairwise similarity matrix to find most similar documents
+# - Cosine
 # export_most_similar_docs(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 10/cosine_checker_202505081044.csv",
 #   threshold = 0.8
@@ -208,34 +213,34 @@ SIM_METHOD = "jaccard"
 #     matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/cosine_checker_202504240519.csv"
 # )
 
-# Levenshtein (no preprocessed)
+# - Levenshtein (no preprocessed)
 # export_most_similar_docs(
-#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/levenshtein_checker(no preprocess).csv",
+#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 12/levenshtein_checker_202505291125.csv",
 #   threshold = 0.8
 # )
 # export_doc_similarity_stats(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/levenshtein(no preprocess)_checker_.csv"
 # )
 
-# Levenshtein
+# - Levenshtein
 # export_most_similar_docs(
-#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/levenshtein_checker_202504240610.csv",
+#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 11/levenshtein_checker_202505291132.csv",
 #   threshold = 0.8
 # )
 # export_doc_similarity_stats(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/levenshtein_checker_202504240610.csv"
 # )
 
-# Jaccard
+# - Jaccard
 # export_most_similar_docs(
-#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 10/jaccard_checker_202505081039.csv",
+#   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 14/levenshtein_checker_202505291130.csv",
 #   threshold = 0.8
 # )
 # export_doc_similarity_stats(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/jaccard_checker_202504240613.csv"
 # )
 
-# Overlap
+# - Overlap
 # export_most_similar_docs(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 10/overlap_checker_202505081044.csv",
 #   threshold = 0.8
@@ -244,7 +249,7 @@ SIM_METHOD = "jaccard"
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/overlap_checker_202504240614.csv"
 # )
 
-# Winnowing
+# - Winnowing
 # export_most_similar_docs(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/winnowing_by_char_checker_202504240728.csv",
 #   threshold = 0.8
@@ -258,7 +263,7 @@ SIM_METHOD = "jaccard"
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/winnowing_by_char_checker_202504240728.csv"
 # )
 
-# Winnowing
+# - Winnowing
 # export_most_similar_docs(
 #   matrix_csv_path = "output/R_output/CSV_output/rmd_similarity_matrices/week 8/winnowing_checker_202504240737.csv",
 #   threshold = 0.8
@@ -287,7 +292,7 @@ SIM_METHOD = "jaccard"
 # )
 
 # Plot box plot of similarity score distribution
-# plot_all_similarity_boxplots(glue("output/R_output/CSV_output/rmd_similarity_matrices/{WEEK}"))
+plot_all_similarity_boxplots(glue("output/R_output/CSV_output/rmd_similarity_matrices/{WEEK}"))
 
 
 
@@ -331,26 +336,26 @@ SIM_METHOD = "jaccard"
 
 # Test K means
 # Similarity matrix
-sim_matrix <- "output/R_output/CSV_output/rmd_similarity_matrices/week 8/jaccard_checker_202504240613.csv"
+# sim_matrix <- "output/R_output/CSV_output/rmd_similarity_matrices/week 8/jaccard_checker_202504240613.csv"
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-output_path <- glue("output/viz/sse_curve/RMD/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
-optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 70)
-cat("Optimal k (elbow point):", optimal_k, "\n")
+# output_path <- glue("output/viz/sse_curve/RMD/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
+# optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 70)
+# cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 4️⃣ 執行 K-Means 並輸出分群結果
-kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)
-clusters <- kmeans_results$cluster_groups
-representative_docs <- kmeans_results$representative_docs
+# kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)
+# clusters <- kmeans_results$cluster_groups
+# representative_docs <- kmeans_results$representative_docs
 
 # 5️⃣ 將 cluster 寫入 JSON
-output_name <- glue("RMD_{SIM_METHOD}_clusters")
+# output_name <- glue("RMD_{SIM_METHOD}_clusters")
 
-json_file_path <- write_list_to_json(
-  clusters,
-  output_dir = glue("output/R_output/json_output/RMD_clusters/"),
-  output_name = output_name
-)
+# json_file_path <- write_list_to_json(
+#   clusters,
+#   output_dir = glue("output/R_output/json_output/RMD_clusters/"),
+#   output_name = output_name
+# )
 
 # 6️⃣ 分析 cluster 的 JSON 檔案 (No task type)
 # analyze_clusters_from_json(

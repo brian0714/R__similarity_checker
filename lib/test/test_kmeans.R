@@ -129,11 +129,10 @@ plot_kmeans_clusters <- function(sim_matrix, kmeans_result, TASK_TYPE, output_di
 }
 
 # test
-TASK_TYPE <- "PRACTICAL" # "PRACTICAL" or "CREATIVE"
+TASK_TYPE <- "CREATIVE" # "PRACTICAL" or "CREATIVE"
 
-# "consensus" or "jaccard" or "overlap" or "winnowing"
-# "winnowing_by_char" or "cosine" or "levenshtein"
-SIM_METHOD <- "consensus"
+# "consensus" or "jaccard" or "overlap" or "winnowing" or "winnowing_by_char" or "cosine" or "levenshtein"
+SIM_METHOD <- "jaccard"
 
 datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
@@ -150,7 +149,7 @@ datetime <- format(Sys.time(), "%Y%m%d%H%M")
 # 2️⃣ Load similarity matrix
 # CREATIVE
 # sim_matrix <- glue("output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_checker_202502281048.csv")
-# sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_by_char_checker_202503270642.csv"
+sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/winnowing_similarity_by_char_checker_202503270642.csv"
 # sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/jaccard_similarity_checker_202502281040.csv"
 # sim_matrix <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/overlap_similarity_checker_202502281040.csv"
 
@@ -166,9 +165,9 @@ datetime <- format(Sys.time(), "%Y%m%d%H%M")
 # sim_matrix <- "output/R_output/CSV_output/PRACTICAL_similarity_matrices/consensus_matrix/consensus_matrix_average.csv"
 
 # 3️⃣ 使用 Elbow Method 確定最佳 k
-# output_path <- glue("output/viz/sse_curve/{TASK_TYPE}/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
-# optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
-# cat("Optimal k (elbow point):", optimal_k, "\n")
+output_path <- glue("output/viz/sse_curve/{TASK_TYPE}/{SIM_METHOD}_sse_elbow_plot_{datetime}.png")
+optimal_k <- elbow_method(file_path=sim_matrix, output_path, max_k = 10)
+cat("Optimal k (elbow point):", optimal_k, "\n")
 
 # 4️⃣ 執行 K-Means 並輸出分群結果
 # kmeans_results <- kmeans_clustering(sim_matrix, optimal_k)

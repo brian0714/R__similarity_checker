@@ -6,6 +6,7 @@ source("lib/term_document_matrix_generator.R")
 library(writexl)
 library(glue)
 
+# Define the function to calculate cluster statistics
 # 定義函式以計算集群中的屬性統計
 calculate_cluster_stats <- function(df, clusters) {
   cluster_stats <- list()
@@ -35,6 +36,7 @@ calculate_cluster_stats <- function(df, clusters) {
   return(cluster_stats)
 }
 
+# Define a function to write cluster statistics to an Excel file
 # 定義函式以將集群使用統計寫入 Excel
 write_cluster_use_stats_to_excel <- function(cluster_stats, output_dir="output/R_output/excel_output", output_name = "cluster_use_stats_") {
   # 初始化一個空列表來存放每個 Cluster 的數據框
@@ -122,10 +124,11 @@ process_user_clusters <- function(
     return(filtered_data_list)
 }
 
+# Analyze clusters from JSON file and generate statistics
 analyze_clusters_from_json <- function(json_file_path, TASK_TYPE, representative_docs=NULL) {
-  # 設定 JSON 檔案路徑
+  # Set the input Json file path (設定 JSON 檔案路徑)
   filtered_dfs <- process_user_clusters(json_path=json_file_path)
-  # 進行文本分析
+  # Execute Clustering Analysis 進行文本分析
   datetime <- format(Sys.time(), "%Y%m%d%H%M")
 
   # Create a large text corpus from nlp_functions.R
@@ -140,7 +143,7 @@ analyze_clusters_from_json <- function(json_file_path, TASK_TYPE, representative
 
   for (i in seq_along(filtered_dfs)) {
     cluster_i <- i
-    df <- filtered_dfs[[i]] # 取得第 i 個 cluster 的數據
+    df <- filtered_dfs[[i]] # Get the data for the i-th cluster (取得第 i 個 cluster 的數據)
     final_submissions <- as.vector(df$final_submission)
     cat("Cluster", cluster_i, ":\n")
 
@@ -152,14 +155,15 @@ analyze_clusters_from_json <- function(json_file_path, TASK_TYPE, representative
     # Generate the term frequency data frame
     term_freq_df <- generate_term_freq_df(tdm_matrix)
 
-    # 定義資料夾路徑
+    # Define the output directory for visualizations (定義資料夾路徑)
     dir_path_barplot <- glue("output/viz/term_count_barplot/{TASK_TYPE}/{datetime}/")
     dir_path_wordcloud <- glue("output/viz/wordcloud/{TASK_TYPE}/{datetime}/")
 
-    # 確保資料夾存在
+    # Ensure the directories exist (確保資料夾存在)
     dir.create(dir_path_barplot, recursive = TRUE, showWarnings = FALSE)
     dir.create(dir_path_wordcloud, recursive = TRUE, showWarnings = FALSE)
 
+    # Plot a barplot of the top terms (e.g. top 20)
     # 繪製前 20 個最高頻詞 bar plot
     top_n <- 20
     output_path <- glue("{dir_path_barplot}/cluster_{cluster_i}_top_{top_n}_terms.png")
@@ -237,11 +241,13 @@ df <- csv_reader(file_path, filter_conditions = filter_conditions, show_col_type
 # similarity_file_path <- "output/R_output/CSV_output/practical_cosine_similarity_checker_202502200503.csv"
 file_path <- "output/R_output/CSV_output/CREATIVE_similarity_matrices/cosine_similarity_checker_202502280632.csv"
 
+# Compute
 # 計算 Elbow method 並繪製最佳 k 值的圖表
 output_path <- "output/viz/sse_curve/cosine_sse_elbow_plot.png"
 # optimal_k <- elbow_method(similarity_file_path, output_path, max_k = 10)
 # cat("Optimal k (elbow point):", optimal_k, "\n")
 
+# Plot dendrogram with cut
 # 繪製帶有切割結果的樹狀圖
 output_path <- "output/viz/dendrogram/cosine_dendrogram_with_cut.png"
 # Use optimal_k from elbow method
